@@ -27,6 +27,15 @@ graph-it scan
 
 ---
 
+## Critical Prerequisite — Reversed Index
+
+> **Without `--reversedIndex=true`, every caller/reference lookup returns empty results → guaranteed false positives.**
+> `get_symbol_callers` and `find_referencing_files` both query the reverse index.
+> If the index was built without it, all symbols will appear orphaned, even live ones.
+> **Always build the index with `--reversedIndex=true` before running this skill.**
+
+---
+
 ## Scope Caveat
 
 > **`find_unused_symbols` operates per-file.** There is no single `graph-it deadcode --project` command (yet).
@@ -44,8 +53,12 @@ graph-it scan
 ### Step 1 — Build/refresh the index
 
 ```bash
-graph-it scan
+graph-it scan --reversedIndex=true
 ```
+
+> **`--reversedIndex=true` is mandatory.** It instructs graph-it to build the reverse lookup index
+> (who imports what, who calls what). Without it, Steps 4 and 5 have no data and every symbol
+> will appear uncalled — producing false positives across the entire scan.
 
 ### Step 2 — Get the list of project files
 
@@ -90,8 +103,11 @@ However a symbol may be called **dynamically** or **from outside the indexed wor
 For every candidate, confirm with:
 
 ```bash
-graph-it tool get_symbol_callers --filePath=<absolutePath> --symbolName=<symbol>
+graph-it tool get_symbol_callers --filePath=<absolutePath> --symbolName=<symbol> --reversedIndex=true
 ```
+
+> Passing `--reversedIndex=true` here ensures the tool queries the reverse call graph.
+> Omitting it falls back to forward-only traversal, which will miss most callers.
 
 - **0 callers** → confirmed dead code candidate
 - **1+ callers** → false positive, discard
@@ -108,8 +124,11 @@ A file is a **ghost file** if:
 Check with:
 
 ```bash
-graph-it tool find_referencing_files --filePath=<absolutePath>
+graph-it tool find_referencing_files --filePath=<absolutePath> --reversedIndex=true
 ```
+
+> Without `--reversedIndex=true`, this tool cannot find reverse references and will incorrectly
+> classify every file as unreferenced.
 
 A ghost file may contain multiple symbols — mark the entire file for deletion rather than symbol-by-symbol.
 
@@ -183,7 +202,7 @@ rm src/utils/oldMigration.ts
 
 ## Safety Checklist Before Deleting
 
-- [ ] Run `graph-it tool get_symbol_callers` one more time after any refactor that modified imports
+- [ ] Run `graph-it tool get_symbol_callers --reversedIndex=true` one more time after any refactor that modified imports
 - [ ] Check if the project is a **published library** — unused exports may be part of the public API
 - [ ] Check `package.json` `exports` field — symbols exported via package entry points are always live
 - [ ] Run the test suite after each deletion batch to catch dynamic usage not visible to static analysis
@@ -196,6 +215,7 @@ rm src/utils/oldMigration.ts
 If you only want to scan one file:
 
 ```bash
+graph-it scan --reversedIndex=true   # rebuild if not already done with the flag
 graph-it check src/utils/format.ts
 graph-it tool find_unused_symbols --filePath=/abs/path/src/utils/format.ts
 ```
