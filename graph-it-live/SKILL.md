@@ -128,7 +128,7 @@ graph-it trace src/index.ts#main --format json
 
 ## Advanced: MCP Tool Invocation
 
-The CLI can invoke any of the 21 MCP tools directly:
+The CLI can invoke any of the 22 MCP tools directly:
 
 ```bash
 graph-it tool --list                    # List all available tools
@@ -159,7 +159,8 @@ graph-it tool <tool_name> [--params]    # Invoke a specific tool
 | `analyze_file_logic` | Intra-file call hierarchy and code flow |
 | `generate_codemap` | Comprehensive structural overview of any source file |
 | `query_call_graph` | BFS callers/callees via the SQLite call graph index |
-| `set_workspace` | Set the project directory to analyze |
+| `scan_dead_code` | Workspace-wide dead code scan across all files |
+| `set_workspace` | Set the project directory to analyze (MCP server only, not CLI) |
 
 ### Tool Invocation Examples
 
@@ -182,11 +183,23 @@ graph-it tool analyze_breaking_changes --filePath=/abs/path/to/file.ts --symbolN
 # Generate codemap
 graph-it tool generate_codemap --filePath=/abs/path/to/file.ts
 
-# Query call graph (BFS)
-graph-it tool query_call_graph --symbolName=handleRequest --direction=callers --maxDepth=3
+# Query call graph (BFS) — requires filePath; depth param is 'depth', NOT 'maxDepth'
+graph-it tool query_call_graph --filePath=/abs/path/server.ts --symbolName=handleRequest --direction=callers --depth=3
+
+# Workspace-wide dead code scan (across all files, unlike find_unused_symbols which is per-file)
+graph-it tool scan_dead_code
 ```
 
 **Important:** Tool `--filePath` arguments require **absolute paths**.
+
+## Critical Rules (NEVER)
+
+- **NEVER** call tool commands without running `graph-it scan` first — all tools depend on the index
+- **NEVER** use relative paths with `--filePath` — all file args must be absolute paths
+- **NEVER** confuse `find_unused_symbols` (per-file) with `scan_dead_code` (workspace-wide); use `scan_dead_code` when you need a project-wide dead code report
+- **NEVER** use `--maxDepth` with `query_call_graph` — the correct parameter is `--depth`
+- **NEVER** invoke `set_workspace` from the CLI — it is MCP server only; the CLI uses `WORKSPACE_ROOT` env var or `graph-it scan` from the project root
+- **NEVER** use `--format json` for large dependency graphs sent to an LLM — use `--format toon` to save 30-60% tokens
 
 ## MCP Server Mode
 

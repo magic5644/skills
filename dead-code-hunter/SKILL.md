@@ -27,114 +27,56 @@ graph-it scan
 
 ---
 
-## Critical Prerequisite — Reversed Index
-
-> **Without `--reversedIndex=true`, every caller/reference lookup returns empty results → guaranteed false positives.**
-> `get_symbol_callers` and `find_referencing_files` both query the reverse index.
-> If the index was built without it, all symbols will appear orphaned, even live ones.
-> **Always build the index with `--reversedIndex=true` before running this skill.**
-
----
-
-## Scope Caveat
-
-> **`find_unused_symbols` operates per-file.** There is no single `graph-it deadcode --project` command (yet).
-> This skill orchestrates multiple tool calls to achieve project-wide coverage.
-> On very large projects (500+ files), prioritize high-risk folders (`src/`, `lib/`, `core/`) rather than scanning everything.
->
-> For a fully automated single-pass solution, the right approach is a native `graph-it deadcode` CLI command
-> built into `@magic5644/graph-it-live`. That would have significantly higher impact than this skill alone,
-> but requires development work on the CLI itself.
-
----
-
 ## Workflow — Step by Step
 
 ### Step 1 — Build/refresh the index
 
 ```bash
-graph-it scan --reversedIndex=true
+graph-it scan
 ```
 
-> **`--reversedIndex=true` is mandatory.** It instructs graph-it to build the reverse lookup index
-> (who imports what, who calls what). Without it, Steps 4 and 5 have no data and every symbol
-> will appear uncalled — producing false positives across the entire scan.
+The reverse lookup index (who imports what, who calls what) is always built automatically — no extra flags needed.
 
-### Step 2 — Get the list of project files
+### Step 2 — Run workspace-wide dead code scan
 
 ```bash
-graph-it tool get_index_status
+graph-it check                     # scan entire workspace (default: up to 500 files)
+graph-it check src/                # scope to a specific folder
+graph-it check src/ --format toon  # toon format saves 30-60% tokens
 ```
 
-Parse the output to retrieve the list of indexed source files. Filter out:
-- `node_modules/`, `dist/`, `build/`, `.cache/`
-- Test files (`*.test.*`, `*.spec.*`, `__tests__/`) — treat separately
-- Type declaration files (`*.d.ts`)
-- Configuration files (`*.config.*`, `vite.config.*`, etc.)
+Or via the MCP tool directly (supports `scopePath` and `maxFiles` params):
 
-This is your **scan target list**.
+```bash
+graph-it tool scan_dead_code
+graph-it tool scan_dead_code --scopePath=/abs/path/src --maxFiles=1000
+```
+
+This returns a ranked list of dead symbols and ghost files in a single pass. **No per-file loop needed.**
 
 ---
 
-### Step 3 — Per-file unused symbol scan
+### Step 3 — Per-file confirmation (avoid false positives)
 
-For each file in the scan target list, run:
-
-```bash
-graph-it tool find_unused_symbols --filePath=<absolutePath>
-```
-
-Collect results into a flat list:
-
-```
-[
-  { file: "src/utils/format.ts", symbol: "formatCurrency", kind: "function" },
-  { file: "src/services/legacyAuth.ts", symbol: "hashPasswordMD5", kind: "function" },
-  ...
-]
-```
-
----
-
-### Step 4 — Confirm with caller lookup (avoid false positives)
-
-`find_unused_symbols` detects exports not imported by other files in the index.
-However a symbol may be called **dynamically** or **from outside the indexed workspace** (e.g. a published library).
-For every candidate, confirm with:
+`scan_dead_code` uses static analysis. A symbol may be called **dynamically** or **from outside the indexed workspace** (e.g. a published library). For high-confidence verification on specific candidates:
 
 ```bash
-graph-it tool get_symbol_callers --filePath=<absolutePath> --symbolName=<symbol> --reversedIndex=true
-```
+# Who calls this symbol? (0 callers = confirmed dead)
+graph-it tool get_symbol_callers --filePath=<absolutePath> --symbolName=<symbol>
 
-> Passing `--reversedIndex=true` here ensures the tool queries the reverse call graph.
-> Omitting it falls back to forward-only traversal, which will miss most callers.
+# Is this file imported by anything? (0 refs + not an entry point = ghost file)
+graph-it tool find_referencing_files --filePath=<absolutePath>
+```
 
 - **0 callers** → confirmed dead code candidate
 - **1+ callers** → false positive, discard
 - **Only test-file callers** → flag as "test-only symbol", handle separately
 
----
-
-### Step 5 — Detect fully orphaned files
-
-A file is a **ghost file** if:
-1. It has 0 referencing files (nothing imports it)
-2. It is not a known entry point (index, main, cli, server, etc.)
-
-Check with:
-
-```bash
-graph-it tool find_referencing_files --filePath=<absolutePath> --reversedIndex=true
-```
-
-> Without `--reversedIndex=true`, this tool cannot find reverse references and will incorrectly
-> classify every file as unreferenced.
-
 A ghost file may contain multiple symbols — mark the entire file for deletion rather than symbol-by-symbol.
 
 ---
 
-### Step 6 — Rank candidates by deletion safety
+### Step 4 — Rank candidates by deletion safety
 
 Apply this risk classification:
 
@@ -202,7 +144,7 @@ rm src/utils/oldMigration.ts
 
 ## Safety Checklist Before Deleting
 
-- [ ] Run `graph-it tool get_symbol_callers --reversedIndex=true` one more time after any refactor that modified imports
+- [ ] Re-run `graph-it scan` + `graph-it check` after any refactor that modified imports
 - [ ] Check if the project is a **published library** — unused exports may be part of the public API
 - [ ] Check `package.json` `exports` field — symbols exported via package entry points are always live
 - [ ] Run the test suite after each deletion batch to catch dynamic usage not visible to static analysis
@@ -212,15 +154,12 @@ rm src/utils/oldMigration.ts
 
 ## Quick Scan (Single File or Folder)
 
-If you only want to scan one file:
-
 ```bash
-graph-it scan --reversedIndex=true   # rebuild if not already done with the flag
-graph-it check src/utils/format.ts
-graph-it tool find_unused_symbols --filePath=/abs/path/src/utils/format.ts
+graph-it scan                                                                     # build/refresh index
+graph-it check src/utils/format.ts                                               # per-file unused symbols
+graph-it check src/utils/                                                        # scoped folder scan
+graph-it tool find_unused_symbols --filePath=/abs/path/src/utils/format.ts       # same as above, MCP tool
 ```
-
-If you want a folder, use `graph-it summary <folder>` to get the file list, then iterate.
 
 ---
 
@@ -229,4 +168,4 @@ If you want a folder, use `graph-it summary <folder>` to get the file list, then
 - **Dynamic dispatch** (`obj[methodName]()`, `require(variable)`) is invisible to static analysis — always review before deleting
 - **Monorepos**: scan per package, not at root, to avoid cross-package false positives
 - **Framework magic**: decorators (`@Component`, `@Injectable`) may make symbols appear unused but they're resolved at runtime — exclude framework entry files from the scan
-- **`graph-it deadcode` CLI command** (not yet available): a native single-pass project-wide dead code scanner would eliminate the per-file iteration overhead and provide a richer output with confidence scores. If this is a bottleneck, open an issue on `@magic5644/graph-it-live`.
+- **`graph-it check` is the native single-pass dead code scanner** — `graph-it check` (no args) runs `scan_dead_code` across the whole workspace. Use `graph-it check <folder>` to scope by directory.
