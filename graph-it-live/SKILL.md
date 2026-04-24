@@ -175,16 +175,16 @@ graph-it tool find_referencing_files --filePath=/abs/path/to/file.ts
 graph-it tool get_symbol_callers --filePath=/abs/path/to/file.ts --symbolName=myFunction
 
 # Full impact analysis
-graph-it tool get_impact_analysis --filePath=/abs/path/to/file.ts --symbolName=calculateTotal
+graph-it tool get_impact_analysis --filePath=/abs/path/to/file.ts
 
 # Detect breaking changes
-graph-it tool analyze_breaking_changes --filePath=/abs/path/to/file.ts --symbolName=processData
+graph-it tool analyze_breaking_changes --filePath=/abs/path/to/file.ts --newFilePath=/abs/path/to/file.new.ts
 
 # Generate codemap
 graph-it tool generate_codemap --filePath=/abs/path/to/file.ts
 
 # Query call graph (BFS) — requires filePath; depth param is 'depth', NOT 'maxDepth'
-graph-it tool query_call_graph --filePath=/abs/path/server.ts --symbolName=handleRequest --direction=callers --depth=3
+graph-it tool query_call_graph --filePath=/abs/path/server.ts --symbolName=handleRequest --depth=3
 
 # Workspace-wide dead code scan (across all files, unlike find_unused_symbols which is per-file)
 graph-it tool scan_dead_code

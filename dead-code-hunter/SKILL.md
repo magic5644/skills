@@ -40,16 +40,16 @@ The reverse lookup index (who imports what, who calls what) is always built auto
 ### Step 2 — Run workspace-wide dead code scan
 
 ```bash
-graph-it check                     # scan entire workspace (default: up to 500 files)
+graph-it check                     # scan entire workspace
 graph-it check src/                # scope to a specific folder
 graph-it check src/ --format toon  # toon format saves 30-60% tokens
 ```
 
-Or via the MCP tool directly (supports `scopePath` and `maxFiles` params):
+Or via the MCP tool directly (supports `scopePath` param):
 
 ```bash
 graph-it tool scan_dead_code
-graph-it tool scan_dead_code --scopePath=/abs/path/src --maxFiles=1000
+graph-it tool scan_dead_code --scopePath=/abs/path/src
 ```
 
 This returns a ranked list of dead symbols and ghost files in a single pass. **No per-file loop needed.**
