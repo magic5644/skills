@@ -297,15 +297,27 @@ graph-it tool get_impact_analysis --filePath=src/auth/index.ts --symbolName=myFu
 **"Give me an overview of this module"**
 
 ```bash
+# Outgoing: what this file imports and calls
 graph-it summary src/auth/index.ts --format toon
+
+# Incoming: who depends on this file
+graph-it tool find_referencing_files --filePath=/abs/path/src/auth/index.ts
 ```
+
+Always check both directions: knowing what a module calls (outgoing) and who calls it (incoming) gives the full picture of its role and blast radius.
 
 **"Find dead code in my project"**
 
 ```bash
+# Outgoing: symbols this file exports that nobody imports
 graph-it check src/utils.ts
 graph-it tool find_unused_symbols --filePath=src/utils.ts
+
+# Incoming: confirm the file itself is not orphaned (nothing imports it)
+graph-it tool find_referencing_files --filePath=/abs/path/src/utils.ts
 ```
+
+Both directions are needed: a file can export symbols that appear used internally while still being completely unreachable from the rest of the project.
 
 **"Trace the execution from main()"**
 

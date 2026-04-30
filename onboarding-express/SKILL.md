@@ -65,16 +65,21 @@ Parse the output to identify:
 
 ### Step 3 — Identify the 3 main entry points
 
-For each candidate entry file (max 5), run:
+For each candidate entry file (max 5), run both directions:
 
 ```bash
+# Outgoing: what this file calls and imports
 graph-it explain <filePath> --format toon
+
+# Incoming: who imports/calls this file
+graph-it tool find_referencing_files --filePath=<absolutePath>
 ```
 
 Rank by:
-1. **Highest fan-out** (the file that calls the most other files) → main orchestrators
-2. **Top-level exports** that are referenced by many other files
-3. Presence of bootstrap / initialization patterns in the call tree
+1. **Highest fan-out** (outgoing) + **0 fan-in** (nothing imports it) → true root entry points
+2. **High fan-out** + **few importers** → secondary entry points (e.g., CLI, alternative bootstraps)
+3. **High fan-in** (imported by many) + **exports many symbols** → shared core, not an entry point
+4. Presence of bootstrap / initialization patterns in the call tree
 
 Select the **top 3** and for each, produce:
 
@@ -86,22 +91,21 @@ Select the **top 3** and for each, produce:
 
 ### Step 4 — Locate the business logic
 
-For each candidate business logic file, run:
+For each candidate business logic file, run **both directions** to build a complete dependency picture:
 
 ```bash
+# Outgoing: what this file exports, imports, and calls internally
 graph-it tool generate_codemap --filePath=<absolutePath> --format toon
-```
 
-Look for files that:
-- Export many symbols (functions, classes)
-- Have deep internal call hierarchies
-- Are imported by many other files (high fan-in)
-
-Cross-check with:
-
-```bash
+# Incoming: who depends on this file across the project
 graph-it tool find_referencing_files --filePath=<absolutePath>
 ```
+
+The combination of both tells you:
+- **generate_codemap** → what the file does (exported symbols, internal call depth, its own dependencies)
+- **find_referencing_files** → how central it is (how many other files rely on it)
+
+Look for files that score high on both axes: many exports **and** many importers. A file with rich exports but no importers is dead code; a file with many importers but few exports is a utility hub. The real business logic sits at the intersection.
 
 Pick the **1–3 files** with the highest combination of fan-in + exported symbol count. These are the business logic core.
 
