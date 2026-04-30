@@ -1,6 +1,14 @@
 ---
 name: obsidian-commander
-description: 'Manage Obsidian vaults from any IDE or CLI. Use when: creating notes, searching vault, managing tags, updating properties/frontmatter, mapping links, cleaning orphans, organizing folders, building semantic index, ingesting content, bulk editing, vault health check, daily notes, templates, obsidian vault, obsidian search, obsidian links, obsidian tags, obsidian properties, obsidian cleanup, obsidian organize.'
+description: |
+  Manage Obsidian vaults from any IDE or CLI — notes, search, tags, links, cleanup, organization,
+  semantic index, daily notes, templates, and vault health. Use this skill whenever the user mentions
+  Obsidian or wants to work with a personal knowledge base, even if they don't say "Obsidian" explicitly.
+  Trigger for: "add a note to my vault", "find notes about X", "clean up orphan notes", "update
+  frontmatter on all notes tagged Y", "audit broken links", "reorganize my vault", "ingest this
+  article into my notes", "build a semantic search for my notes", "check vault health",
+  obsidian vault, obsidian search, obsidian links, obsidian tags, obsidian properties,
+  obsidian cleanup, obsidian organize, PKM, personal knowledge management.
 argument-hint: 'What do you want to do in your Obsidian vault?'
 ---
 
@@ -330,42 +338,6 @@ my-vault/
 | Markdown | `[text](Note.md)` |
 
 **Tags:** `#tag`, `#nested/tag`, in frontmatter as `tags: [a, b]`
-
-## Installation
-
-### As a personal skill (all your projects)
-
-**VS Code / GitHub Copilot:**
-```bash
-mkdir -p ~/.copilot/skills/obsidian-commander
-cp -r . ~/.copilot/skills/obsidian-commander/
-```
-
-**Claude Code:**
-```bash
-mkdir -p ~/.claude/skills/obsidian-commander
-cp -r . ~/.claude/skills/obsidian-commander/
-```
-
-**Generic agents:**
-```bash
-mkdir -p ~/.agents/skills/obsidian-commander
-cp -r . ~/.agents/skills/obsidian-commander/
-```
-
-### As a project skill
-
-```bash
-# In your vault or project root
-mkdir -p .github/skills/obsidian-commander
-cp -r . .github/skills/obsidian-commander/
-```
-
-### Install Python dependencies (for scripts)
-
-```bash
-pip install sentence-transformers faiss-cpu numpy pyyaml tqdm beautifulsoup4 markdownify
-```
 
 ## Workflow Examples
 

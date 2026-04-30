@@ -1,7 +1,16 @@
 ---
 name: onboarding-express
-description: 'Guided project tour for new developers using Graph-It-Live. Use when: onboarding a new developer, project overview, architecture tour, explain codebase, find entry points, find business logic, find most complex module, project walkthrough, new to the project, découvrir le projet, visite guidée, onboarding, point d''entrée, logique métier, module complexe.'
+description: |
+  AI-guided architectural tour of any codebase — entry points, business logic, and the most complex
+  module in one structured pass, powered by Graph-It-Live. Use this skill whenever someone is new to
+  a codebase or wants a quick orientation. Trigger for: "I just joined this team", "explain this repo
+  to me", "give me a project overview", "where is the main logic", "what is the entry point",
+  "I need to understand the architecture before starting", "walk me through this codebase",
+  "which module is the most complex", "find the business logic", "I'm about to refactor and need
+  to understand the structure first", onboarding, project walkthrough, architecture tour,
+  découvrir le projet, visite guidée, point d'entrée, logique métier, module complexe.
 argument-hint: 'Which project or folder do you want to explore?'
+context: fork
 ---
 
 # Onboarding Express
@@ -17,6 +26,8 @@ Graph-It-Live CLI installed and indexed:
 npm install -g @magic5644/graph-it-live
 graph-it scan
 ```
+
+
 
 ## When to Use
 
@@ -78,7 +89,7 @@ Select the **top 3** and for each, produce:
 For each candidate business logic file, run:
 
 ```bash
-graph-it tool generate_codemap --filePath=<absolutePath>
+graph-it tool generate_codemap --filePath=<absolutePath> --format toon
 ```
 
 Look for files that:
@@ -126,7 +137,7 @@ From the highest-scored entry point, trace the full execution chain:
 graph-it trace <entryFile>#<mainFunction> --format mermaid
 ```
 
-Render the Mermaid diagram to give the developer a visual of the critical path.
+Use `--format mermaid` here because the output is intended for a human — the Mermaid diagram renders as a visual flowchart in VS Code, GitHub, Obsidian, and most Markdown preview panes. For all other graph-it calls in this workflow, prefer `--format toon` (token-efficient, AI-readable).
 
 ---
 
@@ -171,4 +182,5 @@ Synthesize steps 3–6 into this structured report:
 - On a **monorepo**, scope the tour per package: `graph-it scan --root packages/api` then repeat the workflow.
 - If `graph-it summary` returns too much data, filter by folder: `graph-it summary src/core --format toon`.
 - The "most complex module" heuristic is architectural, not cyclomatic. For line-level complexity, combine with a linter.
-- After the tour, run Dead Code Hunter to find safe cleanup targets before the new developer starts writing code.
+- After the tour, run the **Dead Code Hunter** skill to find safe cleanup targets before the new developer starts writing code — a clean codebase is much easier to onboard into.
+- For deeper call-graph questions ("what calls this function?", "what breaks if I change X?"), use the **Graph-It-Live** skill directly.
