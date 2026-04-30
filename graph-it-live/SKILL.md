@@ -1,7 +1,15 @@
 ---
 name: graph-it-live
-description: 'Analyze code dependencies, call graphs, and architecture using the graph-it CLI. Use when: dependency analysis, impact analysis, breaking changes, unused exports, dead code detection, call graph, symbol callers, reverse dependencies, codemap, file logic, trace execution, circular dependencies, cycle detection, refactoring safety, architecture overview, code navigation, module resolution, graph-it, graph it, dependency graph.'
+description: |
+  Analyze code dependencies, call graphs, and architecture using the graph-it CLI. Use this skill
+  whenever the user wants to understand how their code is connected — even if they don't say
+  "dependency graph" explicitly. Trigger for: "what calls this function", "who uses this class",
+  "is it safe to delete X", "what breaks if I change Y", "show me the architecture", "trace the
+  execution from main", "find circular imports", "give me an overview of this module", "what imports
+  this file", "impact analysis", "refactoring safety", breaking changes, unused exports, dead code
+  detection, codemap, file logic, module resolution, graph-it, dependency graph, reverse dependencies.
 argument-hint: 'What do you want to analyze in your codebase?'
+context: fork
 ---
 
 # Graph-It-Live
@@ -40,6 +48,12 @@ After global install, `graph-it` is available on PATH. Verify:
 
 ```bash
 graph-it --version
+```
+
+Check updates:
+
+```bash
+graph-it update
 ```
 
 ## Supported Languages
@@ -110,21 +124,24 @@ graph-it check src/api.ts
 
 All commands support `--format`:
 
-| Format     | Description                                  |
+| Format     | Best for                                     |
 |------------|----------------------------------------------|
-| `text`     | Human-readable (default)                     |
-| `json`     | Structured JSON                              |
-| `toon`     | Token-Optimized Object Notation (30-60% smaller, best for AI) |
-| `markdown` | JSON wrapped in Markdown code blocks         |
-| `mermaid`  | Mermaid diagram (`trace` and `path` only)    |
+| `text`     | Quick human reading in the terminal (default) |
+| `json`     | Programmatic processing, scripts             |
+| `toon`     | AI consumption — same data as JSON but 30–60% fewer tokens |
+| `markdown` | Embedding structured output in a document   |
+| `mermaid`  | **Visual diagrams shown to a human** — renders as a flowchart in VS Code, GitHub, Obsidian, or any Markdown preview. Only supported by `trace` and `path`. |
+
+**Choosing the right format:**
+- Processing output inside an agent or script → `--format toon`
+- Showing a call graph or dependency tree to a human in chat or a preview pane → `--format mermaid`
+- All other programmatic use → `--format json`
 
 ```bash
-graph-it summary src/api.ts --format toon
-graph-it path src/index.ts --format mermaid
-graph-it trace src/index.ts#main --format json
+graph-it summary src/api.ts --format toon          # AI reads it
+graph-it trace src/index.ts#main --format mermaid  # human sees the diagram
+graph-it path src/index.ts --format mermaid        # dependency tree as flowchart
 ```
-
-**Prefer `--format toon`** when consuming output programmatically — it saves 30-60% tokens.
 
 ## Advanced: MCP Tool Invocation
 
@@ -274,21 +291,33 @@ Enable MCP server in extension: set `graph-it-live.enableMcpServer` to `true` in
 
 ```bash
 graph-it scan
-graph-it tool get_impact_analysis --filePath=/abs/path/file.ts --symbolName=myFunction
+graph-it tool get_impact_analysis --filePath=src/auth/index.ts --symbolName=myFunction
 ```
 
 **"Give me an overview of this module"**
 
 ```bash
+# Outgoing: what this file imports and calls
 graph-it summary src/auth/index.ts --format toon
+
+# Incoming: who depends on this file
+graph-it tool find_referencing_files --filePath=/abs/path/src/auth/index.ts
 ```
+
+Always check both directions: knowing what a module calls (outgoing) and who calls it (incoming) gives the full picture of its role and blast radius.
 
 **"Find dead code in my project"**
 
 ```bash
+# Outgoing: symbols this file exports that nobody imports
 graph-it check src/utils.ts
-graph-it tool find_unused_symbols --filePath=/abs/path/utils.ts
+graph-it tool find_unused_symbols --filePath=src/utils.ts
+
+# Incoming: confirm the file itself is not orphaned (nothing imports it)
+graph-it tool find_referencing_files --filePath=/abs/path/src/utils.ts
 ```
+
+Both directions are needed: a file can export symbols that appear used internally while still being completely unreachable from the rest of the project.
 
 **"Trace the execution from main()"**
 
@@ -307,7 +336,7 @@ Cycles are auto-detected and reported.
 **"Who calls this function across the project?"**
 
 ```bash
-graph-it tool get_symbol_callers --filePath=/abs/path/file.ts --symbolName=formatDate
+graph-it tool get_symbol_callers --filePath=src/utils/formatDate.ts --symbolName=formatDate
 ```
 
 ## Update
@@ -315,3 +344,8 @@ graph-it tool get_symbol_callers --filePath=/abs/path/file.ts --symbolName=forma
 ```bash
 graph-it update
 ```
+
+## Related Skills
+
+- **Dead Code Hunter** — uses Graph-It-Live under the hood to produce a full project-wide dead code deletion plan with safety rankings. Use it when you want to delete, not just inspect.
+- **Onboarding Express** — runs a structured Graph-It-Live tour of any codebase for a new developer: entry points, business logic, most complex module, and critical path diagram.

@@ -1,7 +1,16 @@
 ---
 name: dead-code-hunter
-description: 'Scan the dependency graph for orphan nodes (uncalled symbols and unreferenced files) and propose safe, ranked deletions. Use when: dead code, unused code, orphan symbols, unreferenced files, cleanup, code hygiene, remove unused exports, find unused functions, find unused classes, supprimer code mort, code inutilisé, nettoyer le code, symboles non utilisés, exports inutiles.'
+description: |
+  Scan the dependency graph for orphan nodes (uncalled symbols and unreferenced files) and produce
+  a safe, ranked deletion plan. Use this skill whenever the user asks about dead code, unused code,
+  orphan symbols, unreferenced files, code cleanup, or code hygiene — even if they don't say "dead code"
+  explicitly. Also trigger for: "remove unused exports", "find unused functions", "find unused classes",
+  "clean up before a refactor", "clean up after removing a feature", "what code is never called",
+  "what files are never imported", "before merging this PR let me clean up", "reduce bundle size by
+  removing dead code", supprimer code mort, code inutilisé, nettoyer le code, symboles non utilisés,
+  exports inutiles.
 argument-hint: 'Which project, folder, or file do you want to scan for dead code?'
+context: fork
 ---
 
 # Dead Code Hunter
@@ -16,6 +25,12 @@ Graph-It-Live CLI installed and indexed:
 ```bash
 npm install -g @magic5644/graph-it-live
 graph-it scan
+```
+
+Check updates:
+
+```bash
+graph-it update
 ```
 
 ## When to Use
@@ -169,3 +184,8 @@ graph-it tool find_unused_symbols --filePath=/abs/path/src/utils/format.ts      
 - **Monorepos**: scan per package, not at root, to avoid cross-package false positives
 - **Framework magic**: decorators (`@Component`, `@Injectable`) may make symbols appear unused but they're resolved at runtime — exclude framework entry files from the scan
 - **`graph-it check` is the native single-pass dead code scanner** — `graph-it check` (no args) runs `scan_dead_code` across the whole workspace. Use `graph-it check <folder>` to scope by directory.
+
+## Related Skills
+
+- **Graph-It-Live** — lower-level access to the full dependency intelligence toolkit: impact analysis, call graphs, codemaps, and more. Use it when you want to explore rather than clean up.
+- **Onboarding Express** — run a codebase architecture tour before (or after) the dead code sweep, especially when a new developer is joining.
