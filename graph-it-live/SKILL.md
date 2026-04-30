@@ -291,7 +291,7 @@ Enable MCP server in extension: set `graph-it-live.enableMcpServer` to `true` in
 
 ```bash
 graph-it scan
-graph-it tool get_impact_analysis --filePath=src/auth/index.ts --symbolName=myFunction
+graph-it tool get_impact_analysis --filePath=/abs/path/src/auth/index.ts --symbolName=myFunction
 ```
 
 **"Give me an overview of this module"**
@@ -311,7 +311,7 @@ Always check both directions: knowing what a module calls (outgoing) and who cal
 ```bash
 # Outgoing: symbols this file exports that nobody imports
 graph-it check src/utils.ts
-graph-it tool find_unused_symbols --filePath=src/utils.ts
+graph-it tool find_unused_symbols --filePath=/abs/path/src/utils.ts
 
 # Incoming: confirm the file itself is not orphaned (nothing imports it)
 graph-it tool find_referencing_files --filePath=/abs/path/src/utils.ts
@@ -336,7 +336,7 @@ Cycles are auto-detected and reported.
 **"Who calls this function across the project?"**
 
 ```bash
-graph-it tool get_symbol_callers --filePath=src/utils/formatDate.ts --symbolName=formatDate
+graph-it tool get_symbol_callers --filePath=/abs/path/src/utils/formatDate.ts --symbolName=formatDate
 ```
 
 ## Update

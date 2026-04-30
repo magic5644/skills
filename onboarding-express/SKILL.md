@@ -27,8 +27,6 @@ npm install -g @magic5644/graph-it-live
 graph-it scan
 ```
 
-
-
 ## When to Use
 
 - A developer joins the team and needs a codebase overview
@@ -113,7 +111,7 @@ Pick the **1–3 files** with the highest combination of fan-in + exported symbo
 
 ### Step 5 — Find the most complex module
 
-For each file in the index (or a sampled top-20 by size), run:
+For a representative sample of files (top 20 by size, or all files for small projects under 50 files), run:
 
 ```bash
 graph-it tool analyze_file_logic --filePath=<absolutePath>
@@ -183,7 +181,7 @@ Synthesize steps 3–6 into this structured report:
 
 ## Tips
 
-- On a **monorepo**, scope the tour per package: `graph-it scan --root packages/api` then repeat the workflow.
+- On a **monorepo**, scope the tour per package: `cd packages/api && graph-it scan` then repeat the workflow.
 - If `graph-it summary` returns too much data, filter by folder: `graph-it summary src/core --format toon`.
 - The "most complex module" heuristic is architectural, not cyclomatic. For line-level complexity, combine with a linter.
 - After the tour, run the **Dead Code Hunter** skill to find safe cleanup targets before the new developer starts writing code — a clean codebase is much easier to onboard into.

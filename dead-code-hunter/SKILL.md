@@ -65,9 +65,10 @@ Or via the MCP tool directly (supports `scopePath` param):
 ```bash
 graph-it tool scan_dead_code
 graph-it tool scan_dead_code --scopePath=/abs/path/src
+graph-it tool scan_dead_code --scopePath=/abs/path/src --format=toon
 ```
 
-This returns a ranked list of dead symbols and ghost files in a single pass. **No per-file loop needed.**
+This returns a ranked list of dead symbols and ghost files in a single pass. **No per-file loop needed for discovery — use Step 3 to confirm high-priority candidates before deleting.**
 
 ---
 
@@ -98,6 +99,7 @@ Apply this risk classification:
 | Risk Level | Criteria | Action |
 |---|---|---|
 | **Safe** | 0 callers, 0 referencing files, not a public API export | Delete freely |
+| **Ghost file** | 0 referencing files, not an entry point | Delete entire file |
 | **Likely safe** | 0 callers confirmed, file has other live symbols | Remove symbol, keep file |
 | **Review first** | Symbol is exported from a barrel (`index.ts`) | Check if barrel is consumed externally |
 | **Do not delete** | Dynamic call patterns detected (`eval`, string-based dispatch) | Flag only |
