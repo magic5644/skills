@@ -162,15 +162,18 @@ select_scope() {
     echo ""
     
     local choice
-    read -p "$(echo -e "${BLUE}Select [1-3]:${NC} ")" -n 1 -r choice
-    echo ""
+    # Read full line instead of single char to avoid buffer issues
+    read -p "$(echo -e "${BLUE}Select [1-3]:${NC} ")" -r choice
+    
+    # Trim whitespace and take first character
+    choice=$(echo "$choice" | tr -d '[:space:]' | cut -c1)
     
     case "$choice" in
         1) echo "global" ;;
         2) echo "local" ;;
         3) echo "both" ;;
         *)
-            print_warning "Invalid choice, defaulting to 'both'"
+            print_warning "Invalid choice '$choice', defaulting to 'both'"
             echo "both"
             ;;
     esac
@@ -445,9 +448,12 @@ run_single_directory_uninstall() {
     echo ""
 
     # Confirmation
-    read -p "$(echo -e "${YELLOW}⚠️  Proceed with uninstallation? [y/N]${NC} ")" -n 1 -r
+    local confirm
+    read -p "$(echo -e "${YELLOW}⚠️  Proceed with uninstallation? [y/N]${NC} ")" -r confirm
     echo ""
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    # Take first character only
+    confirm=$(echo "$confirm" | tr -d '[:space:]' | cut -c1 | tr '[:upper:]' '[:lower:]')
+    if [[ "$confirm" != "y" ]]; then
         print_warning "Uninstallation cancelled"
         exit 0
     fi
@@ -564,9 +570,12 @@ run_multi_directory_uninstall() {
     echo ""
 
     # Confirmation
-    read -p "$(echo -e "${YELLOW}⚠️  Proceed with uninstallation? [y/N]${NC} ")" -n 1 -r
+    local confirm
+    read -p "$(echo -e "${YELLOW}⚠️  Proceed with uninstallation? [y/N]${NC} ")" -r confirm
     echo ""
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    # Take first character only
+    confirm=$(echo "$confirm" | tr -d '[:space:]' | cut -c1 | tr '[:upper:]' '[:lower:]')
+    if [[ "$confirm" != "y" ]]; then
         print_warning "Uninstallation cancelled"
         exit 0
     fi
