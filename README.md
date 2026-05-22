@@ -8,6 +8,7 @@ Each subfolder contains a self-contained skill with a `SKILL.md` file that agent
 
 | Skill | Description |
 | ----- | ----------- |
+| [skill-manager](./skill-manager/) | Interactive skill management - uninstall skills with fzf fuzzy finder |
 | [obsidian-commander](./obsidian-commander/) | Manage Obsidian vaults from any IDE or CLI |
 | [graph-it-live](./graph-it-live/) | Analyze code dependencies, call graphs, and architecture |
 | [onboarding-express](./onboarding-express/) | Guided architectural tour for new developers using Graph-It-Live |
