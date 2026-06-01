@@ -62,21 +62,21 @@ TypeScript, JavaScript, Python, Rust, C#, Go, Java, Vue, Svelte, GraphQL.
 
 ## CLI Commands Reference
 
-### Premier tour complet de la codebase (Agent Bootstrap)
+### First Full Codebase Pass (Agent Bootstrap)
 
-Utilise ce flux au début d'une tâche large (feature, audit, refactor, onboarding):
+Use this workflow at the start of broad tasks (feature work, audits, refactors, onboarding):
 
 ```bash
-# 1) Construire/rafraîchir l'index
+# 1) Build/refresh the index
 graph-it scan
 
-# 2) Obtenir la carte globale optimisée pour agent
+# 2) Generate the agent-optimized global map
 graph-it architecture --format toon
 ```
 
-Ce résultat TOON est le **contexte primaire** pour les agents: `nodes`, `edges`, `failedFiles`, `nodeCount`, `edgeCount`.
+This TOON result is the **primary context** for agents: `nodes`, `edges`, `failedFiles`, `nodeCount`, `edgeCount`.
 
-Ensuite seulement, lancer des analyses ciblées:
+Only after that, run targeted analysis:
 
 ```bash
 graph-it tool generate_codemap --filePath=/abs/path/to/file.ts
@@ -84,13 +84,13 @@ graph-it tool query_call_graph --filePath=/abs/path/to/file.ts --symbolName=mySy
 graph-it tool analyze_file_logic --filePath=/abs/path/to/file.ts
 ```
 
-Si le graphe global est trop gros:
+If the global graph is too large:
 
 ```bash
 graph-it architecture --maxFiles 300 --format toon
 ```
 
-Option visuelle pour humain (pas pour contexte LLM):
+Visual option for humans (not for LLM context):
 
 ```bash
 graph-it architecture --format mermaid
