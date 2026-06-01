@@ -62,6 +62,40 @@ TypeScript, JavaScript, Python, Rust, C#, Go, Java, Vue, Svelte, GraphQL.
 
 ## CLI Commands Reference
 
+### Premier tour complet de la codebase (Agent Bootstrap)
+
+Utilise ce flux au début d'une tâche large (feature, audit, refactor, onboarding):
+
+```bash
+# 1) Construire/rafraîchir l'index
+graph-it scan
+
+# 2) Obtenir la carte globale optimisée pour agent
+graph-it architecture --format toon
+```
+
+Ce résultat TOON est le **contexte primaire** pour les agents: `nodes`, `edges`, `failedFiles`, `nodeCount`, `edgeCount`.
+
+Ensuite seulement, lancer des analyses ciblées:
+
+```bash
+graph-it tool generate_codemap --filePath=/abs/path/to/file.ts
+graph-it tool query_call_graph --filePath=/abs/path/to/file.ts --symbolName=mySymbol --depth=3
+graph-it tool analyze_file_logic --filePath=/abs/path/to/file.ts
+```
+
+Si le graphe global est trop gros:
+
+```bash
+graph-it architecture --maxFiles 300 --format toon
+```
+
+Option visuelle pour humain (pas pour contexte LLM):
+
+```bash
+graph-it architecture --format mermaid
+```
+
 ### Index the Workspace
 
 **Always run `scan` first** to build the dependency index. All other commands depend on it.
