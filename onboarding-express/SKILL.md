@@ -70,7 +70,7 @@ For each candidate entry file (max 5), run both directions:
 graph-it explain <filePath> --format toon
 
 # Incoming: who imports/calls this file
-graph-it tool find_referencing_files --filePath=<absolutePath>
+graph-it tool find_referencing_files --targetPath=<absolutePath>
 ```
 
 Rank by:
@@ -96,7 +96,7 @@ For each candidate business logic file, run **both directions** to build a compl
 graph-it tool generate_codemap --filePath=<absolutePath> --format toon
 
 # Incoming: who depends on this file across the project
-graph-it tool find_referencing_files --filePath=<absolutePath>
+graph-it tool find_referencing_files --targetPath=<absolutePath>
 ```
 
 The combination of both tells you:
@@ -184,5 +184,5 @@ Synthesize steps 3–6 into this structured report:
 - On a **monorepo**, scope the tour per package: `cd packages/api && graph-it scan` then repeat the workflow.
 - If `graph-it summary` returns too much data, filter by folder: `graph-it summary src/core --format toon`.
 - The "most complex module" heuristic is architectural, not cyclomatic. For line-level complexity, combine with a linter.
-- After the tour, run the **Dead Code Hunter** skill to find safe cleanup targets before the new developer starts writing code — a clean codebase is much easier to onboard into.
-- For deeper call-graph questions ("what calls this function?", "what breaks if I change X?"), use the **Graph-It-Live** skill directly.
+- After the tour, run the **dead-code-hunter** skill to find safe cleanup targets before the new developer starts writing code — a clean codebase is much easier to onboard into.
+- For deeper call-graph questions ("what calls this function?", "what breaks if I change X?"), use the **graph-it-live** skill directly.

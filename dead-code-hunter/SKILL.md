@@ -81,7 +81,7 @@ This returns a ranked list of dead symbols and ghost files in a single pass. **N
 graph-it tool get_symbol_callers --filePath=<absolutePath> --symbolName=<symbol>
 
 # Is this file imported by anything? (0 refs + not an entry point = ghost file)
-graph-it tool find_referencing_files --filePath=<absolutePath>
+graph-it tool find_referencing_files --targetPath=<absolutePath>
 ```
 
 - **0 callers** → confirmed dead code candidate
@@ -189,5 +189,5 @@ graph-it tool find_unused_symbols --filePath=/abs/path/src/utils/format.ts      
 
 ## Related Skills
 
-- **Graph-It-Live** — lower-level access to the full dependency intelligence toolkit: impact analysis, call graphs, codemaps, and more. Use it when you want to explore rather than clean up.
-- **Onboarding Express** — run a codebase architecture tour before (or after) the dead code sweep, especially when a new developer is joining.
+- **graph-it-live** — lower-level access to the full dependency intelligence toolkit: impact analysis, call graphs, codemaps, and more. Use it when you want to explore rather than clean up.
+- **onboarding-express** — run a codebase architecture tour before (or after) the dead code sweep, especially when a new developer is joining.

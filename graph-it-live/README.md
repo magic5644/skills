@@ -17,7 +17,10 @@ Graph-It-Live is an AI skill that gives your coding agent full access to the [gr
 - **File logic analysis** — Intra-file call hierarchy and code flow
 - **Cycle detection** — Circular dependency identification
 - **Reverse lookup** — Find all files importing a given file
-- **21 MCP tools** — Full analysis engine exposed to AI assistants
+- **21 CLI analysis tools** via `graph-it tool --list`
+- **Natural language query** via `graph-it query`
+- **Markdown wiki generation** via `graph-it wiki`
+- **24 MCP server tools** total (analysis + server-management + NL/wiki)
 
 ## Supported Languages
 
@@ -27,7 +30,7 @@ TypeScript, JavaScript, Python, Rust, C#, Go, Java, Vue, Svelte, GraphQL.
 
 ## Prerequisites
 
-- **Node.js v20+**
+- **Node.js v22+**
 
 ---
 
@@ -93,6 +96,12 @@ graph-it trace src/index.ts#main
 
 # 5. Find unused exports
 graph-it check src/utils.ts
+
+# 6. Ask a natural-language architecture question
+graph-it query "how does authentication flow through this codebase"
+
+# 7. Generate markdown wiki docs from call graph
+graph-it wiki
 ```
 
 ---
@@ -107,6 +116,8 @@ graph-it check src/utils.ts
 | `explain <file>` | Intra-file call hierarchy | `graph-it explain src/server.ts` |
 | `path <file>` | Dependency graph from entry file | `graph-it path src/index.ts` |
 | `check <file>` | Unused exported symbols | `graph-it check src/api.ts` |
+| `query "<question>"` | Natural language codebase query | `graph-it query "what calls Spider"` |
+| `wiki` | Generate markdown wiki from call graph | `graph-it wiki` |
 | `serve` | Launch MCP stdio server | `graph-it serve` |
 | `tool <name>` | Invoke any MCP tool directly | `graph-it tool get_index_status` |
 | `update` | Update to latest version | `graph-it update` |
@@ -135,9 +146,18 @@ graph-it serve
 
 See `SKILL.md` for full MCP client configuration for VS Code, Cursor, Claude Desktop, Claude Code CLI, and Windsurf.
 
+Tool coverage:
+
+- `graph-it tool --list`: **21 analysis tools**
+- `graph-it serve` MCP server: **24 tools** total
+	- same 21 analysis tools
+	- `set_workspace` (server management)
+	- `query_natural_language`
+	- `generate_wiki`
+
 ---
 
-## 21 MCP Tools
+## 21 CLI Analysis Tools (`graph-it tool`)
 
 | Tool | Description |
 | ---- | ----------- |
@@ -161,7 +181,15 @@ See `SKILL.md` for full MCP client configuration for VS Code, Cursor, Claude Des
 | `analyze_file_logic` | Intra-file call hierarchy |
 | `generate_codemap` | Comprehensive file structural overview |
 | `query_call_graph` | BFS callers/callees via SQLite index |
-| `set_workspace` | Set project directory to analyze |
+| `scan_dead_code` | Workspace-wide dead code scan |
+
+MCP-only additions (available via `graph-it serve`):
+
+| Tool | Description |
+| ---- | ----------- |
+| `set_workspace` | Set project directory for a running MCP server |
+| `query_natural_language` | Natural language question over call graph |
+| `generate_wiki` | Generate navigable markdown wiki from call graph |
 
 ---
 
@@ -184,7 +212,7 @@ What files depend on src/models/User.ts?
 
 ### VS Code / GitHub Copilot
 
-The skill works directly in Copilot Agent mode. The graph-it VS Code extension also provides 20 native LM Tools (no MCP setup required).
+The skill works directly in Copilot Agent mode. The graph-it VS Code extension also provides native LM Tools (no MCP setup required), including dependency, call graph, dead-code, breaking-change, and natural-language query tools.
 
 ### Claude Code
 

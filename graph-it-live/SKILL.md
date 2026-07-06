@@ -34,7 +34,7 @@ Analyze dependencies, call graphs, symbols, impact, and architecture from any ag
 
 ## Quick Start — Installation
 
-**Requires Node.js v20+.**
+**Requires Node.js v22+.**
 
 ```bash
 # Install globally
@@ -84,6 +84,12 @@ graph-it tool query_call_graph --filePath=/abs/path/to/file.ts --symbolName=mySy
 graph-it tool analyze_file_logic --filePath=/abs/path/to/file.ts
 ```
 
+For open-ended architecture questions, use natural language query:
+
+```bash
+graph-it query "how does authentication flow through this project"
+```
+
 If the global graph is too large:
 
 ```bash
@@ -98,7 +104,7 @@ graph-it architecture --format mermaid
 
 ### Index the Workspace
 
-**Always run `scan` first** to build the dependency index. All other commands depend on it.
+**Always run `scan` first** to build the dependency index. Most analysis commands depend on it.
 
 ```bash
 graph-it scan
@@ -154,6 +160,18 @@ Detect dead code — exported symbols that no other file imports:
 graph-it check src/api.ts
 ```
 
+Workspace-wide dead code scan:
+
+```bash
+graph-it check
+```
+
+Generate a markdown wiki from call graph relationships:
+
+```bash
+graph-it wiki
+```
+
 ### Output Formats
 
 All commands support `--format`:
@@ -179,7 +197,8 @@ graph-it path src/index.ts --format mermaid        # dependency tree as flowchar
 
 ## Advanced: MCP Tool Invocation
 
-The CLI can invoke any of the 22 MCP tools directly:
+`graph-it tool` can invoke **21 analysis tools** directly from CLI.
+Server-management tool `set_workspace` is MCP-server only and intentionally excluded from `graph-it tool`.
 
 ```bash
 graph-it tool --list                    # List all available tools
@@ -211,7 +230,8 @@ graph-it tool <tool_name> [--params]    # Invoke a specific tool
 | `generate_codemap` | Comprehensive structural overview of any source file |
 | `query_call_graph` | BFS callers/callees via the SQLite call graph index |
 | `scan_dead_code` | Workspace-wide dead code scan across all files |
-| `set_workspace` | Set the project directory to analyze (MCP server only, not CLI) |
+
+> `query_natural_language` and `generate_wiki` are available as dedicated CLI commands (`graph-it query`, `graph-it wiki`) and as MCP server tools, but **not** in `graph-it tool --list`.
 
 ### Tool Invocation Examples
 
@@ -220,16 +240,16 @@ graph-it tool <tool_name> [--params]    # Invoke a specific tool
 graph-it tool analyze_dependencies --filePath=/abs/path/to/file.ts
 
 # Find all files importing a specific file
-graph-it tool find_referencing_files --filePath=/abs/path/to/file.ts
+graph-it tool find_referencing_files --targetPath=/abs/path/to/file.ts
 
 # Get all callers of a symbol
 graph-it tool get_symbol_callers --filePath=/abs/path/to/file.ts --symbolName=myFunction
 
 # Full impact analysis
-graph-it tool get_impact_analysis --filePath=/abs/path/to/file.ts
+graph-it tool get_impact_analysis --filePath=/abs/path/to/file.ts --symbolName=myFunction
 
-# Detect breaking changes
-graph-it tool analyze_breaking_changes --filePath=/abs/path/to/file.ts --newFilePath=/abs/path/to/file.new.ts
+# Detect breaking changes (use --args JSON for large content payloads)
+graph-it tool --args '{"filePath":"/abs/path/to/file.ts","symbolName":"myFunction","oldContent":"...old source...","newContent":"...new source..."}' analyze_breaking_changes
 
 # Generate codemap
 graph-it tool generate_codemap --filePath=/abs/path/to/file.ts
@@ -239,6 +259,12 @@ graph-it tool query_call_graph --filePath=/abs/path/server.ts --symbolName=handl
 
 # Workspace-wide dead code scan (across all files, unlike find_unused_symbols which is per-file)
 graph-it tool scan_dead_code
+
+# Natural-language architecture question
+graph-it query "what calls the MCP worker and how"
+
+# Generate wiki docs from call graph
+graph-it wiki --output docs/wiki
 ```
 
 **Important:** Tool `--filePath` arguments require **absolute paths**.
@@ -251,6 +277,8 @@ graph-it tool scan_dead_code
 - **NEVER** use `--maxDepth` with `query_call_graph` — the correct parameter is `--depth`
 - **NEVER** invoke `set_workspace` from the CLI — it is MCP server only; the CLI uses `WORKSPACE_ROOT` env var or `graph-it scan` from the project root
 - **NEVER** use `--format json` for large dependency graphs sent to an LLM — use `--format toon` to save 30-60% tokens
+- **NEVER** pass `--filePath` to `find_referencing_files`; the expected parameter is `--targetPath`
+- **NEVER** call `analyze_breaking_changes` with `--newFilePath`; it expects `oldContent` / `newContent`
 
 ## MCP Server Mode
 
@@ -259,6 +287,12 @@ Launch as an MCP server for AI client integration (no VS Code required):
 ```bash
 graph-it serve
 ```
+
+MCP server currently exposes **24 tools**:
+- 21 analysis tools from `graph-it tool --list`
+- `set_workspace` (server management)
+- `query_natural_language`
+- `generate_wiki`
 
 ### MCP Client Configuration
 
@@ -335,7 +369,7 @@ graph-it tool get_impact_analysis --filePath=/abs/path/src/auth/index.ts --symbo
 graph-it summary src/auth/index.ts --format toon
 
 # Incoming: who depends on this file
-graph-it tool find_referencing_files --filePath=/abs/path/src/auth/index.ts
+graph-it tool find_referencing_files --targetPath=/abs/path/src/auth/index.ts
 ```
 
 Always check both directions: knowing what a module calls (outgoing) and who calls it (incoming) gives the full picture of its role and blast radius.
@@ -348,7 +382,7 @@ graph-it check src/utils.ts
 graph-it tool find_unused_symbols --filePath=/abs/path/src/utils.ts
 
 # Incoming: confirm the file itself is not orphaned (nothing imports it)
-graph-it tool find_referencing_files --filePath=/abs/path/src/utils.ts
+graph-it tool find_referencing_files --targetPath=/abs/path/src/utils.ts
 ```
 
 Both directions are needed: a file can export symbols that appear used internally while still being completely unreachable from the rest of the project.
@@ -373,6 +407,18 @@ Cycles are auto-detected and reported.
 graph-it tool get_symbol_callers --filePath=/abs/path/src/utils/formatDate.ts --symbolName=formatDate
 ```
 
+**"Answer architecture questions in natural language"**
+
+```bash
+graph-it query "how does the dependency index get rebuilt"
+```
+
+**"Generate a wiki for onboarding"**
+
+```bash
+graph-it wiki --output wiki
+```
+
 ## Update
 
 ```bash
@@ -381,5 +427,6 @@ graph-it update
 
 ## Related Skills
 
-- **Dead Code Hunter** — uses Graph-It-Live under the hood to produce a full project-wide dead code deletion plan with safety rankings. Use it when you want to delete, not just inspect.
-- **Onboarding Express** — runs a structured Graph-It-Live tour of any codebase for a new developer: entry points, business logic, most complex module, and critical path diagram.
+- **dead-code-hunter** — uses Graph-It-Live under the hood to produce a full project-wide dead code deletion plan with safety rankings. Use it when you want to delete, not just inspect.
+- **onboarding-express** — runs a structured Graph-It-Live tour of any codebase for a new developer: entry points, business logic, most complex module, and critical path diagram.
+- **skill-manager** — manage installed skills interactively (list/uninstall). Useful when curating or cleaning a local skill stack.
