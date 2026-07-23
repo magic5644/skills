@@ -6,8 +6,9 @@ description: |
   "dependency graph" explicitly. Trigger for: "what calls this function", "who uses this class",
   "is it safe to delete X", "what breaks if I change Y", "show me the architecture", "trace the
   execution from main", "find circular imports", "give me an overview of this module", "what imports
-  this file", "impact analysis", "refactoring safety", breaking changes, unused exports, dead code
-  detection, codemap, file logic, module resolution, graph-it, dependency graph, reverse dependencies.
+  this file", "impact analysis", "refactoring safety", "review this PR", "review this diff",
+  "is this change risky", breaking changes, unused exports, dead code detection, codemap, file logic,
+  module resolution, graph-it, dependency graph, reverse dependencies.
 argument-hint: 'What do you want to analyze in your codebase?'
 context: fork
 ---
@@ -31,6 +32,7 @@ Analyze dependencies, call graphs, symbols, impact, and architecture from any ag
 - Detect circular dependencies / cycles
 - Check impact of changing a function signature
 - Get a workspace architecture overview
+- Review a Git diff for breaking signatures, impact, cycles, and test candidates
 
 ## Quick Start — Installation
 
@@ -172,6 +174,24 @@ Generate a markdown wiki from call graph relationships:
 graph-it wiki
 ```
 
+### Review a Pull Request or Diff
+
+Use the dedicated command for deterministic local diff analysis. It requires a Git base ref and
+indexes automatically:
+
+```bash
+graph-it review-pr --base origin/main --format markdown
+graph-it review-pr --base origin/main --head feature/my-change --depth 3 --max-files 200 --format toon
+```
+
+Read `risk`, `score`, `limitations`, and `isPartial` before making a merge recommendation:
+
+- `low`, `medium`, `high`, `critical` classify the highest-risk changed symbol.
+- `isPartial: true` means file, parser, or impact-depth limits prevented a complete result.
+- No breaking signature does **not** prove that a behavioral change is safe; inspect tests and affected flows.
+
+Use the **pr-review** skill for the full review workflow and GitHub Actions gate.
+
 ### Output Formats
 
 All commands support `--format`:
@@ -232,6 +252,7 @@ graph-it tool <tool_name> [--params]    # Invoke a specific tool
 | `scan_dead_code` | Workspace-wide dead code scan across all files |
 
 > `query_natural_language` and `generate_wiki` are available as dedicated CLI commands (`graph-it query`, `graph-it wiki`) and as MCP server tools, but **not** in `graph-it tool --list`.
+> Run `graph-it tool --list` for the installed CLI's authoritative tool inventory; releases can add tools over time.
 
 ### Tool Invocation Examples
 
@@ -419,6 +440,15 @@ graph-it query "how does the dependency index get rebuilt"
 graph-it wiki --output wiki
 ```
 
+**"Review a pull request before merge"**
+
+```bash
+graph-it review-pr --base origin/main --format markdown
+```
+
+Escalate every high/critical symbol with `get_impact_analysis` or `get_symbol_callers`. Treat any
+reported limitation as a manual-review item.
+
 ## Update
 
 ```bash
@@ -429,4 +459,5 @@ graph-it update
 
 - **dead-code-hunter** — uses Graph-It-Live under the hood to produce a full project-wide dead code deletion plan with safety rankings. Use it when you want to delete, not just inspect.
 - **onboarding-express** — runs a structured Graph-It-Live tour of any codebase for a new developer: entry points, business logic, most complex module, and critical path diagram.
+- **pr-review** — reviews a Git diff locally or in GitHub Actions, then turns Graph-It-Live evidence into merge-ready findings.
 - **skill-manager** — manage installed skills interactively (list/uninstall). Useful when curating or cleaning a local skill stack.

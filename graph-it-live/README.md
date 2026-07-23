@@ -17,10 +17,11 @@ Graph-It-Live is an AI skill that gives your coding agent full access to the [gr
 - **File logic analysis** — Intra-file call hierarchy and code flow
 - **Cycle detection** — Circular dependency identification
 - **Reverse lookup** — Find all files importing a given file
-- **21 CLI analysis tools** via `graph-it tool --list`
+- **PR review** — Risk-score a Git diff for API breaks, impact, cycles, and test candidates
+- **Tool invocation** — Run the installed tool inventory with `graph-it tool --list`
 - **Natural language query** via `graph-it query`
 - **Markdown wiki generation** via `graph-it wiki`
-- **24 MCP server tools** total (analysis + server-management + NL/wiki)
+- **Session telemetry** via `graph-it stats`
 
 ## Supported Languages
 
@@ -100,7 +101,10 @@ graph-it check src/utils.ts
 # 6. Ask a natural-language architecture question
 graph-it query "how does authentication flow through this codebase"
 
-# 7. Generate markdown wiki docs from call graph
+# 7. Review a Git diff before merging
+graph-it review-pr --base origin/main --format markdown
+
+# 8. Generate markdown wiki docs from call graph
 graph-it wiki
 ```
 
@@ -115,9 +119,15 @@ graph-it wiki
 | `trace <sym>` | Trace execution flow | `graph-it trace src/index.ts#main` |
 | `explain <file>` | Intra-file call hierarchy | `graph-it explain src/server.ts` |
 | `path <file>` | Dependency graph from entry file | `graph-it path src/index.ts` |
+| `path-in <file>` | Incoming dependencies | `graph-it path-in src/api.ts` |
+| `check-dependencies <file>` | Incoming and outgoing dependencies | `graph-it check-dependencies src/api.ts` |
+| `cycles <file>` | Confirmed dependency cycles | `graph-it cycles src/api.ts` |
+| `architecture` | Full workspace architecture | `graph-it architecture --format toon` |
 | `check <file>` | Unused exported symbols | `graph-it check src/api.ts` |
+| `review-pr` | Review a Git diff with risk scoring | `graph-it review-pr --base origin/main --format markdown` |
 | `query "<question>"` | Natural language codebase query | `graph-it query "what calls Spider"` |
 | `wiki` | Generate markdown wiki from call graph | `graph-it wiki` |
+| `stats` | TOON and LLM session telemetry | `graph-it stats` |
 | `serve` | Launch MCP stdio server | `graph-it serve` |
 | `tool <name>` | Invoke any MCP tool directly | `graph-it tool get_index_status` |
 | `update` | Update to latest version | `graph-it update` |
@@ -146,18 +156,12 @@ graph-it serve
 
 See `SKILL.md` for full MCP client configuration for VS Code, Cursor, Claude Desktop, Claude Code CLI, and Windsurf.
 
-Tool coverage:
-
-- `graph-it tool --list`: **21 analysis tools**
-- `graph-it serve` MCP server: **24 tools** total
-	- same 21 analysis tools
-	- `set_workspace` (server management)
-	- `query_natural_language`
-	- `generate_wiki`
+Run `graph-it tool --list` to inspect the analysis tools available in the installed release.
+The MCP server additionally exposes workspace management and natural-language/wiki operations.
 
 ---
 
-## 21 CLI Analysis Tools (`graph-it tool`)
+## CLI Analysis Tools (`graph-it tool`)
 
 | Tool | Description |
 | ---- | ----------- |
@@ -208,7 +212,22 @@ Generate a codemap for src/api/server.ts
 Find dead code in src/utils.ts
 Trace the execution flow from main() in src/index.ts
 What files depend on src/models/User.ts?
+Review the changes between my branch and main before I merge
 ```
+
+## Pull Request Review
+
+Run a local, deterministic review from the repository root:
+
+```bash
+graph-it review-pr --base origin/main --format markdown
+```
+
+The result reports a `risk` level, a `score`, changed symbols, evidence, test candidates, and any
+`limitations`. A partial result is not a clean review: investigate its limitations before merging.
+
+For a reusable agent workflow and a GitHub Actions gate, install
+[pr-review](../pr-review/).
 
 ### VS Code / GitHub Copilot
 

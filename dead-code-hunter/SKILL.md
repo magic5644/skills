@@ -52,6 +52,14 @@ graph-it scan
 
 The reverse lookup index (who imports what, who calls what) is always built automatically — no extra flags needed.
 
+For a large or unfamiliar workspace, take a compact baseline before scanning:
+
+```bash
+graph-it architecture --format toon
+```
+
+Use it to identify packages, public entry points, and generated areas that require review rather than automatic deletion.
+
 ### Step 2 — Run workspace-wide dead code scan
 
 ```bash
@@ -191,3 +199,4 @@ graph-it tool find_unused_symbols --filePath=/abs/path/src/utils/format.ts      
 
 - **graph-it-live** — lower-level access to the full dependency intelligence toolkit: impact analysis, call graphs, codemaps, and more. Use it when you want to explore rather than clean up.
 - **onboarding-express** — run a codebase architecture tour before (or after) the dead code sweep, especially when a new developer is joining.
+- **pr-review** — review a cleanup diff before merge and inspect its impact evidence.

@@ -31,11 +31,19 @@ Trigger with natural language in your agent:
 > "Scan for orphan files"
 > "Clean up unused exports in src/"
 
-## Scope Note
+## Scan Scope
 
-This skill orchestrates per-file tool calls to achieve project-wide coverage.
-For a fully automated single-pass solution, a native `graph-it deadcode` CLI command would have higher impact
-— but that requires development work on the `@magic5644/graph-it-live` tool itself.
+`graph-it check` scans the workspace in one pass; pass a file or folder to constrain the scope.
+For agent integrations, use `scan_dead_code` with `scopePath`:
+
+```bash
+graph-it scan
+graph-it check src/
+graph-it tool scan_dead_code --scopePath=/absolute/path/to/project/src --format=toon
+```
+
+Confirm high-priority candidates individually with `get_symbol_callers` and
+`find_referencing_files` before deleting them.
 
 ## Limitations
 
@@ -47,3 +55,4 @@ For a fully automated single-pass solution, a native `graph-it deadcode` CLI com
 
 - [graph-it-live](../graph-it-live/) — underlying dependency analysis engine
 - [onboarding-express](../onboarding-express/) — use Dead Code Hunter before onboarding a new developer
+- [pr-review](../pr-review/) — review cleanup diffs before merge

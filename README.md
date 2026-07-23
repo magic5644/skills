@@ -13,6 +13,7 @@ Each subfolder contains a self-contained skill with a `SKILL.md` file that agent
 | [graph-it-live](./graph-it-live/) | Analyze code dependencies, call graphs, and architecture |
 | [onboarding-express](./onboarding-express/) | Guided architectural tour for new developers using Graph-It-Live |
 | [dead-code-hunter](./dead-code-hunter/) | Scan the dependency graph for orphan symbols and propose safe deletions |
+| [pr-review](./pr-review/) | Review Git diffs with Graph-It-Live risk, impact, and GitHub Actions evidence |
 
 ## Installation
 

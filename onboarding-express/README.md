@@ -12,6 +12,10 @@ In one structured pass, the AI will identify:
 
 Output is a structured report with a Mermaid diagram of the critical execution path.
 
+The tour starts with `graph-it architecture --format toon`, then validates the key files with
+codemaps, reverse lookups, and call-graph analysis. This keeps the global pass compact while
+retaining evidence for the conclusions.
+
 ## Requirements
 
 - [Graph-It-Live](https://www.npmjs.com/package/@magic5644/graph-it-live) CLI (`npm install -g @magic5644/graph-it-live`)
@@ -34,7 +38,15 @@ Trigger with natural language in your agent:
 > "Show me the entry points and business logic"
 > "Which module is the most complex?"
 
+For large workspaces, scope the first pass:
+
+```bash
+graph-it scan
+graph-it architecture --maxFiles 300 --format toon
+```
+
 ## Related Skills
 
 - [graph-it-live](../graph-it-live/) — underlying dependency analysis engine
 - [dead-code-hunter](../dead-code-hunter/) — clean up orphan code before onboarding
+- [pr-review](../pr-review/) — review onboarding-driven changes before merge

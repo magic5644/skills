@@ -51,13 +51,19 @@ Always run first. All subsequent commands depend on it.
 ### Step 2 — Workspace overview
 
 ```bash
-graph-it summary --format toon
+graph-it architecture --format toon
 ```
 
 Parse the output to identify:
 - Top-level files and their role
 - Candidate **entry point files** (look for: `index`, `main`, `app`, `server`, `cli`, `bootstrap`, `startup` in filenames or in exported symbols)
 - Candidate **business logic folders** (look for: `services`, `domain`, `core`, `usecases`, `business`, `handlers`, `controllers`)
+
+If the graph is too large, restrict the initial pass:
+
+```bash
+graph-it architecture --maxFiles 300 --format toon
+```
 
 ---
 
@@ -129,6 +135,13 @@ Score each file using this heuristic:
 
 The file with the highest combined score is the **most complex module**.
 
+For an open-ended follow-up, use the natural-language query as a hypothesis generator, then
+verify the answer with the deterministic scores above:
+
+```bash
+graph-it query "which module has the deepest call stack and widest impact"
+```
+
 ---
 
 ### Step 6 — Trace the critical path
@@ -182,7 +195,9 @@ Synthesize steps 3–6 into this structured report:
 ## Tips
 
 - On a **monorepo**, scope the tour per package: `cd packages/api && graph-it scan` then repeat the workflow.
-- If `graph-it summary` returns too much data, filter by folder: `graph-it summary src/core --format toon`.
+- If the architecture graph returns too much data, lower `--maxFiles` or tour one package/folder at a time.
+- If indexing is incomplete, rerun `graph-it scan` from the package root and report the unanalysed area rather than guessing.
 - The "most complex module" heuristic is architectural, not cyclomatic. For line-level complexity, combine with a linter.
 - After the tour, run the **dead-code-hunter** skill to find safe cleanup targets before the new developer starts writing code — a clean codebase is much easier to onboard into.
 - For deeper call-graph questions ("what calls this function?", "what breaks if I change X?"), use the **graph-it-live** skill directly.
+- Before merging an onboarding-driven change, use **pr-review** to inspect its diff and static-impact limitations.
