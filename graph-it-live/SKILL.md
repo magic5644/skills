@@ -106,7 +106,9 @@ graph-it architecture --format mermaid
 
 ### Index the Workspace
 
-**Always run `scan` first** to build the dependency index. Most analysis commands depend on it.
+**Run `scan` before analysis commands** to build the dependency index. Most analysis commands depend on it.
+The `review-pr` command is the exception: it indexes automatically, so do not run a
+separate `scan` first unless you need to refresh the index for another command.
 
 ```bash
 graph-it scan
@@ -292,7 +294,7 @@ graph-it wiki --output docs/wiki
 
 ## Critical Rules (NEVER)
 
-- **NEVER** call tool commands without running `graph-it scan` first — all tools depend on the index
+- **NEVER** call analysis tool commands without running `graph-it scan` first — all tools depend on the index. `review-pr` is the sole exception because it indexes automatically.
 - **NEVER** use relative paths with `--filePath` — all file args must be absolute paths
 - **NEVER** confuse `find_unused_symbols` (per-file) with `scan_dead_code` (workspace-wide); use `scan_dead_code` when you need a project-wide dead code report
 - **NEVER** use `--maxDepth` with `query_call_graph` — the correct parameter is `--depth`
