@@ -1,0 +1,75 @@
+[
+  {
+    "id": "obs-val-01",
+    "task_type": "semantic-index",
+    "prompt": "Set up AI search over my notes so I can ask questions by meaning, not keywords.",
+    "context": "Vault at /Users/me/Vault, Python 3.11 available, no index yet, works offline required.",
+    "rubric": [
+      "Installs the requirements (`pip install -r requirements.txt`: sentence-transformers, faiss-cpu, numpy, pyyaml, tqdm)",
+      "Builds the index: `python scripts/semantic_search.py --vault /Users/me/Vault --action build`",
+      "Shows the query form: `--action ask --query \"...\" --top 10`",
+      "Mentions `--action update` for incremental re-indexing of new or modified notes",
+      "Confirms it runs locally/offline"
+    ],
+    "anti_patterns": [
+      "Recommends uploading the vault to a hosted embedding service",
+      "Rebuilds the full index for every incremental change"
+    ],
+    "gold_notes": "sentence-transformers + FAISS, three actions: build, ask, update.",
+    "should_trigger": true
+  },
+  {
+    "id": "obs-val-02",
+    "task_type": "daily-notes",
+    "prompt": "Add 'call the accountant' to today's tasks.",
+    "context": "Vault at /Users/me/Vault, Obsidian running, daily notes enabled.",
+    "rubric": [
+      "Uses `obsidian daily:append content=\"- [ ] Call the accountant\"`",
+      "Writes the task in Obsidian checkbox syntax",
+      "Mentions `obsidian tasks todo` / `obsidian tasks daily` to review tasks afterwards",
+      "Keeps the answer short — this is a one-command operation"
+    ],
+    "anti_patterns": [
+      "Opens and rewrites the daily note file by hand while the app is running",
+      "Turns a one-line capture into a vault-wide workflow"
+    ],
+    "gold_notes": "Task ref toggling: `obsidian task ref=\"Note.md:8\" toggle`.",
+    "should_trigger": true
+  },
+  {
+    "id": "obs-val-03",
+    "task_type": "ingest",
+    "prompt": "Pull this article into my vault as a note: https://example.com/an-article",
+    "context": "Vault at /Users/me/Vault.",
+    "rubric": [
+      "Uses `python scripts/ingest.py --vault . --url \"https://example.com/an-article\" --as note`",
+      "Mentions the ingestion modes (note, append, daily-append, split) and picks the right one",
+      "Adds frontmatter (source URL, created date, tags) so the note is findable later",
+      "Mentions the supported source formats when the user has local files instead"
+    ],
+    "anti_patterns": [
+      "Pastes the article body with no frontmatter or source attribution",
+      "Invents an ingest flag the script does not have"
+    ],
+    "gold_notes": "ingest.py --source or --url, with --format markdown|html|... and --convert.",
+    "should_trigger": true
+  },
+  {
+    "id": "obs-val-04",
+    "task_type": "no-app-running",
+    "prompt": "Update the frontmatter of 200 notes from a CI job.",
+    "context": "GitHub Actions runner, vault checked out as a git repo, Obsidian app not installed.",
+    "rubric": [
+      "Chooses the file-based approach because the Obsidian CLI needs the running app",
+      "Uses `bulk_properties.py` (or direct YAML frontmatter edits) rather than `obsidian` commands",
+      "States explicitly that `obsidian` CLI commands are unavailable in CI",
+      "Relies on git for the safety net (diff review, revert) instead of a manual backup"
+    ],
+    "anti_patterns": [
+      "Suggests `obsidian property:set` in a headless CI environment",
+      "Ignores that the vault is version-controlled and adds a redundant backup step"
+    ],
+    "gold_notes": "Decision table: CLI when the app runs; file-based for CI/CD and bulk work.",
+    "should_trigger": true
+  }
+]

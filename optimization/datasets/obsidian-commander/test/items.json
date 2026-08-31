@@ -1,0 +1,73 @@
+[
+  {
+    "id": "obs-test-01",
+    "task_type": "vault-health",
+    "prompt": "Is my vault healthy? Give me a report.",
+    "context": "Vault at /Users/me/Vault, 342 notes, 88 attachments.",
+    "rubric": [
+      "Runs `python scripts/vault_health.py --vault /Users/me/Vault`",
+      "Reports link health (resolved %, orphans, dead-ends, unresolved) alongside counts",
+      "Covers frontmatter consistency, tag duplicates and naming-convention violations",
+      "Turns the findings into a prioritized action list rather than dumping raw numbers"
+    ],
+    "anti_patterns": [
+      "Fabricates health numbers instead of running the script",
+      "Applies fixes as part of the health check"
+    ],
+    "gold_notes": "vault_health.py is read-only; vault_cleanup.py --action fix is the mutating step.",
+    "should_trigger": true
+  },
+  {
+    "id": "obs-test-02",
+    "task_type": "vault-discovery",
+    "prompt": "Add a note about tomorrow's standup.",
+    "context": "Current working directory is /Users/me/code/some-repo. No .obsidian folder in any ancestor directory. No vault path configured.",
+    "rubric": [
+      "Detects that no vault can be resolved from the current directory tree",
+      "Asks the user for the vault path instead of guessing one",
+      "Does not create the note outside a vault",
+      "Explains the resolution rule: nearest ancestor containing .obsidian, otherwise ask"
+    ],
+    "anti_patterns": [
+      "Creates the note in the current repository",
+      "Assumes a default vault path like ~/Obsidian without confirmation"
+    ],
+    "gold_notes": "vault_path = find_ancestor_with('.obsidian') or ask_user('Vault path?').",
+    "should_trigger": true
+  },
+  {
+    "id": "obs-test-03",
+    "task_type": "negative-trigger",
+    "prompt": "Fix the failing Jest test in src/cart.test.ts.",
+    "context": "Repo root: /work/shop. The user also happens to keep an Obsidian vault elsewhere.",
+    "rubric": [
+      "Debugs the failing test instead of touching the vault",
+      "Does not run any `obsidian` command or vault script",
+      "Keeps the answer on the test failure"
+    ],
+    "anti_patterns": [
+      "Creates a note about the bug because the skill is loaded",
+      "Mentions vault operations at all"
+    ],
+    "gold_notes": "Negative example guarding against over-triggering.",
+    "should_trigger": false
+  },
+  {
+    "id": "obs-test-04",
+    "task_type": "links",
+    "prompt": "What links to my 'Zettelkasten Method' note, and what does it link out to?",
+    "context": "Vault at /Users/me/Vault, Obsidian running, note file 'Zettelkasten Method.md'.",
+    "rubric": [
+      "Uses `obsidian backlinks file=\"Zettelkasten Method\"` for incoming links",
+      "Uses `obsidian links file=\"Zettelkasten Method\"` for outgoing links",
+      "Explains the difference between the two directions in the answer",
+      "Handles the link syntaxes correctly (wikilinks, aliases, heading and block refs, embeds)"
+    ],
+    "anti_patterns": [
+      "Returns only one direction",
+      "Treats an embed `![[Note]]` as if it were not a link"
+    ],
+    "gold_notes": "Link formats: [[Note]], [[Note|Display]], [[Note#Heading]], [[Note#^block]], ![[Note]], [text](Note.md).",
+    "should_trigger": true
+  }
+]

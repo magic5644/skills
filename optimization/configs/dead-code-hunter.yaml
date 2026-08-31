@@ -1,0 +1,6 @@
+# Optimize the dead-code-hunter skill document.
+_base_: _base_/agentskill.yaml
+
+env:
+  skill_init: dead-code-hunter/SKILL.md
+  split_dir: optimization/datasets/dead-code-hunter

@@ -1,0 +1,6 @@
+# Optimize the pr-review skill document.
+_base_: _base_/agentskill.yaml
+
+env:
+  skill_init: pr-review/SKILL.md
+  split_dir: optimization/datasets/pr-review

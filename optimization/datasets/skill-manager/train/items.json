@@ -1,0 +1,111 @@
+[
+  {
+    "id": "skm-train-01",
+    "task_type": "interactive-uninstall",
+    "prompt": "I want to remove a few skills I don't use anymore.",
+    "context": "macOS. Skills present in ~/.claude/skills and .agents/skills of the current project. fzf status unknown.",
+    "rubric": [
+      "Checks fzf availability with `command -v fzf` before running the script",
+      "Asks about scope (global, local, both) since both locations contain skills",
+      "Runs `./scripts/uninstall-interactive.sh` (optionally with `--scope <global|local|both>`)",
+      "Explains the interaction: arrows to navigate, type to filter, TAB to multi-select, ENTER to confirm",
+      "Lists the remaining skills after the uninstall to confirm the result"
+    ],
+    "anti_patterns": [
+      "Runs `rm -rf` on skill directories instead of the reviewed interactive flow",
+      "Assumes a single skill location without asking"
+    ],
+    "gold_notes": "Locations: ~/.copilot/skills, ~/.claude/skills, ~/.cursor/skills, ~/.agents/skills, .agents/skills.",
+    "should_trigger": true
+  },
+  {
+    "id": "skm-train-02",
+    "task_type": "missing-fzf",
+    "prompt": "The uninstaller says fzf isn't found.",
+    "context": "Ubuntu 24.04, bash shell.",
+    "rubric": [
+      "Gives the Ubuntu/Debian install command: `sudo apt update && sudo apt install fzf`",
+      "Mentions the macOS (`brew install fzf`) and Fedora (`sudo dnf install fzf`) equivalents as alternatives",
+      "Verifies with `which fzf` that the binary is on PATH",
+      "Re-runs the uninstaller after the install"
+    ],
+    "anti_patterns": [
+      "Rewrites the script to avoid fzf",
+      "Gives a Homebrew command on Ubuntu"
+    ],
+    "gold_notes": "fzf is a hard prerequisite of the interactive flow.",
+    "should_trigger": true
+  },
+  {
+    "id": "skm-train-03",
+    "task_type": "list",
+    "prompt": "Which skills do I actually have installed?",
+    "context": "User works with both Claude Code and GitHub Copilot in VS Code.",
+    "rubric": [
+      "Lists the relevant directories: `ls -1 ~/.claude/skills/` and `ls -1 ~/.copilot/skills/`",
+      "Also checks the project-local `.agents/skills/` and the other platform directories",
+      "Presents the result grouped by location so duplicates across platforms are visible",
+      "Does not modify anything for a read-only request"
+    ],
+    "anti_patterns": [
+      "Launches the interactive uninstaller for a listing request",
+      "Checks only one platform directory"
+    ],
+    "gold_notes": "Detection priority: SKILLS_DIR, then copilot, claude, cursor, agents, project-local.",
+    "should_trigger": true
+  },
+  {
+    "id": "skm-train-04",
+    "task_type": "scoped-uninstall",
+    "prompt": "Only clean up the project-local skills, leave my global ones alone.",
+    "context": "Project at /work/shop with .agents/skills containing 5 skills.",
+    "rubric": [
+      "Runs `./scripts/uninstall-interactive.sh --scope local` to skip the scope prompt",
+      "States that local scope means `.agents/skills` only",
+      "Mentions the `SKILLS_DIR=.agents/skills` override for targeting one exact directory",
+      "Confirms the global directories are untouched"
+    ],
+    "anti_patterns": [
+      "Uses `--scope both` and removes global skills",
+      "Invents a `--global`/`--local` flag spelling the script does not accept"
+    ],
+    "gold_notes": "Scopes: global, local, both. SKILLS_DIR targets a specific directory.",
+    "should_trigger": true
+  },
+  {
+    "id": "skm-train-05",
+    "task_type": "single-skill",
+    "prompt": "Just remove the 'prd' skill from Claude Code, nothing else.",
+    "context": "macOS, ~/.claude/skills/prd exists.",
+    "rubric": [
+      "Uses the non-interactive path for a single named skill: `rm -rf ~/.claude/skills/prd`",
+      "Confirms the exact target path before deleting",
+      "Confirms afterwards that other skills are untouched (`ls -1 ~/.claude/skills/`)",
+      "Notes that the same skill may also exist in other platform directories"
+    ],
+    "anti_patterns": [
+      "Opens the fzf selector when the user named one exact skill",
+      "Deletes from every platform directory without asking"
+    ],
+    "gold_notes": "Non-interactive uninstall is documented under Advanced Usage.",
+    "should_trigger": true
+  },
+  {
+    "id": "skm-train-06",
+    "task_type": "permissions",
+    "prompt": "The uninstaller fails with 'permission denied'.",
+    "context": "Linux, skills directory owned by root after an install run with sudo.",
+    "rubric": [
+      "Checks write permissions on the skills directory before retrying",
+      "Checks that the script itself is executable (`chmod +x scripts/uninstall-interactive.sh`)",
+      "Fixes ownership of the user's own skills directory rather than running the uninstaller as root",
+      "Distinguishes the two failure modes (script not executable vs directory not writable)"
+    ],
+    "anti_patterns": [
+      "Recommends `sudo rm -rf` on a home-directory path as the first fix",
+      "Recommends chmod 777 on the skills directory"
+    ],
+    "gold_notes": "Error handling list: fzf missing, no skills, permission denied, canceled selection.",
+    "should_trigger": true
+  }
+]

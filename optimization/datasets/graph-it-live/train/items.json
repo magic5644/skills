@@ -1,0 +1,115 @@
+[
+  {
+    "id": "gil-train-01",
+    "task_type": "impact",
+    "prompt": "I need to change the signature of `updateUser` in src/api/users.ts (adding a required `tenantId` argument). What breaks?",
+    "context": "Repo root: /work/shop. TypeScript monorepo-free project, graph-it CLI installed globally, index never built in this session.",
+    "rubric": [
+      "Runs `graph-it scan` before any analysis tool call",
+      "Uses `graph-it tool get_impact_analysis` with `--filePath` and `--symbolName=updateUser`",
+      "Passes an absolute path (e.g. /work/shop/src/api/users.ts), not a relative one",
+      "Reports both direct callers and breaking-change evidence from the tool output",
+      "States that static evidence does not prove behavioral safety and that tests must still run"
+    ],
+    "anti_patterns": [
+      "Invents caller names or impact numbers instead of reading them from the command output",
+      "Uses a relative path in a `graph-it tool --filePath` argument"
+    ],
+    "gold_notes": "graph-it scan; graph-it tool get_impact_analysis --filePath=/work/shop/src/api/users.ts --symbolName=updateUser --format=toon; then optionally get_symbol_callers for the highest-risk callers.",
+    "should_trigger": true
+  },
+  {
+    "id": "gil-train-02",
+    "task_type": "callers",
+    "prompt": "Who calls formatDate across the project? I want to know before I rename it.",
+    "context": "Repo root: /work/shop. Symbol defined in src/utils/formatDate.ts. Index already built earlier today, no file changes since.",
+    "rubric": [
+      "Uses `graph-it tool get_symbol_callers --filePath=<abs> --symbolName=formatDate`",
+      "Uses an absolute path for `--filePath`",
+      "Explains that 0 callers means the symbol is a dead-code candidate, 1+ means a rename has to update them",
+      "Mentions re-running `graph-it scan` if the index is stale after edits"
+    ],
+    "anti_patterns": [
+      "Falls back to grep as the primary method instead of the graph-it call-graph index",
+      "Uses `find_referencing_files --filePath=` (wrong parameter name)"
+    ],
+    "gold_notes": "get_symbol_callers is an O(1) lookup in the call-graph index; find_referencing_files answers the file-level question and takes --targetPath.",
+    "should_trigger": true
+  },
+  {
+    "id": "gil-train-03",
+    "task_type": "architecture",
+    "prompt": "Give me an overview of this codebase's architecture before I start a big feature.",
+    "context": "Repo root: /work/shop, roughly 900 source files, agent context budget is tight.",
+    "rubric": [
+      "Runs `graph-it scan` first",
+      "Runs `graph-it architecture --format toon` as the primary global map",
+      "Justifies `toon` as saving 30-60% tokens versus json for agent consumption",
+      "Reads nodes, edges, nodeCount, edgeCount and failedFiles from the output",
+      "Offers `--maxFiles` scoping because the graph is large"
+    ],
+    "anti_patterns": [
+      "Requests `--format json` for the full graph destined for the model context",
+      "Starts with per-file tools before producing the global map"
+    ],
+    "gold_notes": "Bootstrap order: scan, then architecture --format toon, then targeted tools (generate_codemap, query_call_graph, analyze_file_logic).",
+    "should_trigger": true
+  },
+  {
+    "id": "gil-train-04",
+    "task_type": "trace",
+    "prompt": "Show me visually how execution flows from main() so I can put the diagram in our README.",
+    "context": "Repo root: /work/shop. Entry point src/index.ts exports `main`. Output is for humans reading Markdown on GitHub.",
+    "rubric": [
+      "Runs `graph-it scan` first",
+      "Uses `graph-it trace src/index.ts#main`",
+      "Uses `--format mermaid` because the consumer is a human reading Markdown",
+      "Explains the `<filePath>#<functionName>` argument syntax",
+      "Notes that toon stays the default for agent-consumed output"
+    ],
+    "anti_patterns": [
+      "Chooses mermaid for output that will be parsed by the agent",
+      "Uses a `--format` value that trace does not support"
+    ],
+    "gold_notes": "mermaid is supported only by trace and path, and only for human-facing diagrams.",
+    "should_trigger": true
+  },
+  {
+    "id": "gil-train-05",
+    "task_type": "cycles",
+    "prompt": "We think there are circular imports somewhere. Find them.",
+    "context": "Repo root: /work/shop, entry file src/index.ts.",
+    "rubric": [
+      "Runs `graph-it scan` first",
+      "Runs `graph-it path src/index.ts` to crawl the transitive dependency tree",
+      "States that cycles are auto-detected and reported by that command",
+      "Reports each cycle as a concrete file chain rather than a vague statement",
+      "Offers `--format mermaid` only if the user wants a visual dependency tree"
+    ],
+    "anti_patterns": [
+      "Recommends installing a third-party cycle detector instead of using graph-it",
+      "Claims the codebase has no cycles without showing command output"
+    ],
+    "gold_notes": "graph-it path <entry> crawls transitive imports and reports circular dependencies.",
+    "should_trigger": true
+  },
+  {
+    "id": "gil-train-06",
+    "task_type": "dead-code",
+    "prompt": "Which exported symbols in this project are never imported anywhere?",
+    "context": "Repo root: /work/shop. The user wants a project-wide answer, not one file.",
+    "rubric": [
+      "Runs `graph-it scan` first",
+      "Uses the workspace-wide scanner: `graph-it check` or `graph-it tool scan_dead_code`",
+      "Explicitly distinguishes `scan_dead_code` (workspace-wide) from `find_unused_symbols` (per-file)",
+      "Warns that dynamic dispatch and public package exports produce false positives",
+      "Suggests confirming a candidate with get_symbol_callers / find_referencing_files before deleting"
+    ],
+    "anti_patterns": [
+      "Loops `find_unused_symbols` file by file for a project-wide question",
+      "Presents static results as proof that deletion is safe"
+    ],
+    "gold_notes": "graph-it check (no args) runs scan_dead_code across the workspace; --format toon keeps the report cheap.",
+    "should_trigger": true
+  }
+]

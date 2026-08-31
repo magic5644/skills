@@ -1,0 +1,76 @@
+[
+  {
+    "id": "gil-val-01",
+    "task_type": "module-overview",
+    "prompt": "Give me an overview of the auth module — what it does and how central it is.",
+    "context": "Repo root: /work/shop, module file src/auth/index.ts.",
+    "rubric": [
+      "Runs `graph-it scan` first",
+      "Covers the outgoing direction with `graph-it summary src/auth/index.ts --format toon` or `generate_codemap`",
+      "Covers the incoming direction with `graph-it tool find_referencing_files --targetPath=<abs>`",
+      "Uses `--targetPath` (not `--filePath`) for find_referencing_files",
+      "Explains that both directions together give role plus blast radius"
+    ],
+    "anti_patterns": [
+      "Reports only imports/exports and ignores who depends on the module",
+      "Passes `--filePath` to find_referencing_files"
+    ],
+    "gold_notes": "Outgoing = codemap/summary; incoming = find_referencing_files --targetPath.",
+    "should_trigger": true
+  },
+  {
+    "id": "gil-val-02",
+    "task_type": "diff-review",
+    "prompt": "Is my branch risky to merge? Base is origin/main.",
+    "context": "Repo root: /work/shop, current branch feature/checkout-v2, index built two days ago.",
+    "rubric": [
+      "Runs `graph-it review-pr --base origin/main`",
+      "Does not run a separate `graph-it scan` first, because review-pr indexes automatically",
+      "Reads `risk`, `score`, `limitations` and `isPartial` before giving a verdict",
+      "Refuses to call the review complete while `isPartial` is true or limitations are non-empty",
+      "Escalates high/critical symbols with get_impact_analysis or get_symbol_callers"
+    ],
+    "anti_patterns": [
+      "Runs `graph-it scan` before review-pr and presents it as required",
+      "Concludes 'safe to merge' from the absence of breaking signatures alone"
+    ],
+    "gold_notes": "review-pr is the sole command that indexes automatically; --base is required, --head defaults to HEAD.",
+    "should_trigger": true
+  },
+  {
+    "id": "gil-val-03",
+    "task_type": "troubleshooting",
+    "prompt": "I ran `graph-it tool query_call_graph --filePath=src/server.ts --maxDepth=3 --symbolName=handleRequest` and it failed. What's wrong?",
+    "context": "Repo root: /work/shop.",
+    "rubric": [
+      "Identifies that the depth parameter is `--depth`, not `--maxDepth`",
+      "Identifies that `--filePath` must be an absolute path",
+      "Gives the corrected command with both fixes applied",
+      "Reminds that `graph-it scan` must have populated the index for the tool to answer"
+    ],
+    "anti_patterns": [
+      "Blames the CLI version or suggests reinstalling instead of fixing the arguments",
+      "Fixes only one of the two argument errors"
+    ],
+    "gold_notes": "graph-it tool query_call_graph --filePath=/work/shop/src/server.ts --symbolName=handleRequest --depth=3",
+    "should_trigger": true
+  },
+  {
+    "id": "gil-val-04",
+    "task_type": "setup",
+    "prompt": "How do I wire graph-it into Claude Code and Cursor so it's always available?",
+    "context": "Node.js v22 installed. Nothing installed yet.",
+    "rubric": [
+      "Installs the CLI with `npm install -g @magic5644/graph-it-live` and notes the Node v22+ requirement",
+      "Gives the Claude Code registration: `claude mcp add graph-it -- graph-it serve`",
+      "Gives the Cursor/VS Code `mcp.json` stdio entry running `graph-it serve` with `WORKSPACE_ROOT`",
+      "Mentions `graph-it --version` to verify and `graph-it update` to upgrade"
+    ],
+    "anti_patterns": [
+      "Suggests calling `set_workspace` from the CLI",
+      "Invents an MCP configuration key or a different binary name"
+    ],
+    "gold_notes": "set_workspace is MCP-server only; the CLI uses WORKSPACE_ROOT or the scan cwd.",
+    "should_trigger": true
+  }
+]

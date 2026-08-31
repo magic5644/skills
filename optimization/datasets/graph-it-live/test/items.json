@@ -1,0 +1,73 @@
+[
+  {
+    "id": "gil-test-01",
+    "task_type": "natural-language",
+    "prompt": "How does authentication flow through this project?",
+    "context": "Repo root: /work/shop, ~900 files, index not yet built.",
+    "rubric": [
+      "Runs `graph-it scan` first",
+      "Uses `graph-it query \"how does authentication flow through this project\"` as a hypothesis generator",
+      "Verifies the natural-language answer with a deterministic command (trace, query_call_graph or generate_codemap)",
+      "Presents the verified call chain rather than the raw natural-language guess alone"
+    ],
+    "anti_patterns": [
+      "Presents the natural-language answer as verified fact without a deterministic cross-check",
+      "Describes the auth flow from general knowledge without running any command"
+    ],
+    "gold_notes": "graph-it query is available as a CLI command and MCP tool but not through `graph-it tool --list`.",
+    "should_trigger": true
+  },
+  {
+    "id": "gil-test-02",
+    "task_type": "scale",
+    "prompt": "graph-it architecture floods my context on this monorepo. What should I do?",
+    "context": "Repo root: /work/platform with packages/api, packages/web, packages/shared; ~4000 files.",
+    "rubric": [
+      "Reduces the graph with `graph-it architecture --maxFiles <N> --format toon`",
+      "Recommends scanning per package (cd packages/api && graph-it scan) instead of at the monorepo root",
+      "Explains that root-level scans of a monorepo create cross-package noise and false positives",
+      "Keeps `--format toon` for anything sent to the model"
+    ],
+    "anti_patterns": [
+      "Recommends `--format json` or `--format mermaid` for the large agent-facing graph",
+      "Suggests truncating output manually instead of using the CLI's own limits"
+    ],
+    "gold_notes": "Scope by package, cap with --maxFiles, stay on toon.",
+    "should_trigger": true
+  },
+  {
+    "id": "gil-test-03",
+    "task_type": "negative-trigger",
+    "prompt": "Reformat all my TypeScript files with Prettier and fix the lint errors.",
+    "context": "Repo root: /work/shop with an existing .prettierrc and eslint config.",
+    "rubric": [
+      "Answers with formatting/lint tooling (prettier, eslint) rather than dependency-graph analysis",
+      "Does not run `graph-it scan` or any `graph-it tool` command for this request",
+      "Stays short and does not lecture the user about dependency graphs"
+    ],
+    "anti_patterns": [
+      "Runs graph-it commands because the skill is loaded",
+      "Claims graph-it can format or lint code"
+    ],
+    "gold_notes": "Negative example: the skill is loaded but must not fire. Over-triggering is a real regression.",
+    "should_trigger": false
+  },
+  {
+    "id": "gil-test-04",
+    "task_type": "dead-code",
+    "prompt": "Are any of the exports in src/utils.ts unused?",
+    "context": "Repo root: /work/shop. Single-file question.",
+    "rubric": [
+      "Runs `graph-it scan` first",
+      "Uses the per-file scanner: `graph-it check src/utils.ts` or `graph-it tool find_unused_symbols --filePath=<abs>`",
+      "Also checks the file itself with `find_referencing_files --targetPath=<abs>` to detect an orphaned file",
+      "Explains why both directions are needed: internally-used exports in an unreachable file are still dead"
+    ],
+    "anti_patterns": [
+      "Runs the workspace-wide scan when a single file was asked about",
+      "Uses a relative path with a `graph-it tool` file argument"
+    ],
+    "gold_notes": "find_unused_symbols is per-file; the file may itself be a ghost file.",
+    "should_trigger": true
+  }
+]

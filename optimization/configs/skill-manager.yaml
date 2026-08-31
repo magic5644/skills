@@ -1,0 +1,6 @@
+# Optimize the skill-manager skill document.
+_base_: _base_/agentskill.yaml
+
+env:
+  skill_init: skill-manager/SKILL.md
+  split_dir: optimization/datasets/skill-manager

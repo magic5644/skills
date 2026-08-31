@@ -1,0 +1,113 @@
+[
+  {
+    "id": "obs-train-01",
+    "task_type": "create-note",
+    "prompt": "Capture a quick idea in my vault: quantum computing for ML acceleration, tag it as an idea.",
+    "context": "Vault at /Users/me/Vault (contains .obsidian/). Obsidian app is running.",
+    "rubric": [
+      "Resolves the vault path (ancestor folder containing .obsidian, or asks the user) before writing",
+      "Uses the Obsidian CLI `obsidian create name=... content=...` because the app is running",
+      "Sets the tags property with `obsidian property:set name=tags value=\"[idea,quantum]\" type=list`",
+      "Writes YAML frontmatter with the expected default properties (tags/aliases/created)",
+      "Notes the file-based alternative when the app is not running"
+    ],
+    "anti_patterns": [
+      "Writes a file to an arbitrary path without resolving the vault",
+      "Puts tags in the body as #tags when the user asked for a tagged note and properties are the vault convention"
+    ],
+    "gold_notes": "CLI when the app is live; file-based for CI/CD and bulk edits. Property types: text, list, number, checkbox, date, datetime.",
+    "should_trigger": true
+  },
+  {
+    "id": "obs-train-02",
+    "task_type": "search",
+    "prompt": "Find everything in my vault about Project X.",
+    "context": "Vault at /Users/me/Vault, ~340 notes. Semantic index already built.",
+    "rubric": [
+      "Runs a text search: `obsidian search query=\"Project X\"` or `obsidian search:context`",
+      "Runs the semantic search script for conceptual matches: `python scripts/semantic_search.py --vault . --action ask --query ...`",
+      "Uses at least one Obsidian search operator correctly (tag:, path:, file:, content:, [property:value])",
+      "Explains the difference between literal and semantic hits in the results"
+    ],
+    "anti_patterns": [
+      "Uses grep over the vault as the only method",
+      "Invents a search operator that is not in the reference table"
+    ],
+    "gold_notes": "Operators: file:, path:, tag:, content:, line:, section:, task:, task-todo:, [property:value].",
+    "should_trigger": true
+  },
+  {
+    "id": "obs-train-03",
+    "task_type": "bulk-properties",
+    "prompt": "Every note tagged #draft should get status: review.",
+    "context": "Vault at /Users/me/Vault, 62 notes tagged #draft.",
+    "rubric": [
+      "Uses the bulk script rather than per-note CLI calls: `python scripts/bulk_properties.py --vault . --filter \"tag:#draft\" --set \"status=review\"`",
+      "States that the operation edits many files and suggests a dry run or a git/vault backup first",
+      "Uses the correct property type when the value is not plain text (--type list/checkbox)",
+      "Reports how many notes were changed"
+    ],
+    "anti_patterns": [
+      "Loops `obsidian property:set` over 62 notes",
+      "Applies a bulk frontmatter rewrite with no backup or confirmation"
+    ],
+    "gold_notes": "bulk_properties.py supports --filter, --folder, --set, --type.",
+    "should_trigger": true
+  },
+  {
+    "id": "obs-train-04",
+    "task_type": "link-audit",
+    "prompt": "Audit my vault's links — I think a lot of them are broken.",
+    "context": "Vault at /Users/me/Vault, 342 notes.",
+    "rubric": [
+      "Runs `python scripts/link_audit.py --vault /Users/me/Vault` for the full report",
+      "Also mentions the targeted CLI commands: `obsidian unresolved`, `obsidian orphans`, `obsidian deadends`",
+      "Reports the metric set: total links, resolved %, unresolved, orphans, dead-ends",
+      "Distinguishes unresolved links from orphan notes and dead-end notes",
+      "Proposes fixing with `vault_cleanup.py --action report` before `--action fix`"
+    ],
+    "anti_patterns": [
+      "Runs the cleanup in fix mode before showing the report",
+      "Conflates orphans (no incoming links) with dead-ends (no outgoing links)"
+    ],
+    "gold_notes": "Report-then-fix is the cleanup contract.",
+    "should_trigger": true
+  },
+  {
+    "id": "obs-train-05",
+    "task_type": "cleanup",
+    "prompt": "Clean up my vault: empty notes, duplicates, orphan attachments.",
+    "context": "Vault at /Users/me/Vault, not under version control.",
+    "rubric": [
+      "Runs `python scripts/vault_health.py --vault .` first to see the state",
+      "Runs `vault_cleanup.py --action report` as a dry run before any change",
+      "Only then runs `--action fix`, after the user has seen the report",
+      "Warns that the vault is not version-controlled and recommends a backup first",
+      "Lists what cleanup touches: empty notes, broken links, duplicates, frontmatter, orphan attachments, tag casing, stale TODOs"
+    ],
+    "anti_patterns": [
+      "Runs `--action fix` immediately",
+      "Deletes attachments without reporting them first"
+    ],
+    "gold_notes": "Destructive vault operations always go report -> review -> fix.",
+    "should_trigger": true
+  },
+  {
+    "id": "obs-train-06",
+    "task_type": "organize",
+    "prompt": "Reorganize my vault with the PARA method.",
+    "context": "Vault at /Users/me/Vault, flat structure, notes tagged project/area/resource/archive.",
+    "rubric": [
+      "Scaffolds the structure: `python scripts/scaffold_vault.py --vault . --template para`",
+      "Moves notes with `organize_vault.py --strategy by-tag` and an explicit tag-to-folder mapping",
+      "Warns that moving notes can break links and recommends a link audit afterwards",
+      "Mentions the other available templates (zettelkasten, gtd, journal, research, custom)"
+    ],
+    "anti_patterns": [
+      "Moves files with shell mv and leaves links unchecked",
+      "Invents a template name that the script does not support"
+    ],
+    "gold_notes": "organize_vault strategies: by-tag, by-date, by-moc.",
+    "should_trigger": true
+  }
+]

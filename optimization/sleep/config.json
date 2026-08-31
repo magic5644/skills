@@ -1,0 +1,40 @@
+{
+  "_comment": "Template for ~/.skillopt-sleep/config.json — installed by scripts/skillopt-sleep.sh --install-config. Paths marked <REPO> are rewritten at install time.",
+
+  "transcript_source": "claude",
+  "projects": "invoked",
+  "lookback_hours": 24,
+
+  "backend": "claude",
+  "model": "",
+  "optimizer_backend": "",
+  "optimizer_model": "",
+  "target_backend": "",
+  "target_model": "",
+
+  "max_tasks_per_night": 20,
+  "max_tokens_per_night": 300000,
+  "val_fraction": 0.34,
+  "test_fraction": 0.2,
+  "edit_budget": 3,
+
+  "gate_mode": "on",
+  "gate_metric": "mixed",
+  "gate_mixed_weight": 0.5,
+  "gate_no_regression": true,
+
+  "evolve_skill": true,
+  "evolve_memory": false,
+  "llm_mine": true,
+  "multi_skill_fanout": true,
+  "skill_roots": ["<REPO>"],
+  "target_task_filter": true,
+
+  "auto_adopt": false,
+  "redact_secrets": true,
+  "evidence_log": true,
+  "progress": true,
+  "seed": 42,
+
+  "preferences": "Skill documents in this repository must stay compact and imperative. Every command must be copy-pasteable and correct, absolute paths where the CLI requires them. Preserve the frontmatter `name`, `description`, `argument-hint` and `context` fields; the description carries the trigger phrases (including the French ones) and must keep firing on paraphrases while never firing on unrelated requests. Never add guidance that contradicts the CLI's documented flags. Prefer deleting stale text over appending new sections."
+}

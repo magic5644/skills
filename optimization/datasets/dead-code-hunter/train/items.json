@@ -1,0 +1,114 @@
+[
+  {
+    "id": "dch-train-01",
+    "task_type": "workspace-scan",
+    "prompt": "Find all the dead code in this project and tell me what I can safely delete.",
+    "context": "Repo root: /work/shop, TypeScript app (not a published library), index never built.",
+    "rubric": [
+      "Runs `graph-it scan` to build the index before scanning",
+      "Runs the single-pass workspace scan (`graph-it check` or `graph-it tool scan_dead_code`)",
+      "Confirms high-priority candidates with get_symbol_callers and find_referencing_files before proposing deletion",
+      "Classifies candidates by risk (safe / ghost file / review first / do not delete / test-only)",
+      "Delivers a Deletion Plan with ghost files, safe orphan symbols, review-first and test-only sections",
+      "Recommends deleting in small batches and running the test suite after each batch"
+    ],
+    "anti_patterns": [
+      "Deletes files or runs `rm` instead of proposing a reviewed plan",
+      "Loops per-file discovery instead of using the single-pass workspace scan"
+    ],
+    "gold_notes": "scan -> check -> per-candidate confirmation -> ranked plan. Never delete unilaterally.",
+    "should_trigger": true
+  },
+  {
+    "id": "dch-train-02",
+    "task_type": "false-positive",
+    "prompt": "scan_dead_code says `createReport` in src/api/index.ts is unused, but I'm not sure.",
+    "context": "Repo root: /work/shop. src/api/index.ts is a barrel file re-exporting the public API of an npm package published as @shop/api.",
+    "rubric": [
+      "Runs `graph-it tool get_symbol_callers --filePath=<abs> --symbolName=createReport` to confirm",
+      "Flags the symbol as a barrel export requiring review rather than a safe deletion",
+      "Checks whether the project is a published library and inspects `package.json` `exports`",
+      "Concludes: do not delete — symbols reachable through package entry points are live",
+      "Explains that static analysis cannot see external consumers"
+    ],
+    "anti_patterns": [
+      "Classifies the symbol as safe to delete because the scanner reported 0 callers",
+      "Ignores the published-package context given in the prompt"
+    ],
+    "gold_notes": "Barrel exports of a published package are always 'review first', never 'safe'.",
+    "should_trigger": true
+  },
+  {
+    "id": "dch-train-03",
+    "task_type": "ghost-files",
+    "prompt": "Are there whole files in src/legacy/ that nothing imports anymore?",
+    "context": "Repo root: /work/shop, folder src/legacy/ with 14 files.",
+    "rubric": [
+      "Runs `graph-it scan` first",
+      "Scopes the scan with `graph-it check src/legacy/` (or `scan_dead_code --scopePath=<abs>`)",
+      "Confirms each candidate with `find_referencing_files --targetPath=<abs>`",
+      "Applies the ghost-file rule: 0 referencing files and not an entry point means the whole file goes",
+      "Marks the file for deletion as a unit rather than symbol by symbol"
+    ],
+    "anti_patterns": [
+      "Scans the whole workspace when a folder scope was requested",
+      "Deletes a file that is an entry point declared in package.json or a build config"
+    ],
+    "gold_notes": "graph-it check <folder> scopes the scan; scan_dead_code takes --scopePath with an absolute path.",
+    "should_trigger": true
+  },
+  {
+    "id": "dch-train-04",
+    "task_type": "dynamic-dispatch",
+    "prompt": "The scan flagged 6 handler functions in src/handlers/ as dead. Can I delete them?",
+    "context": "Repo root: /work/shop. Handlers are dispatched through a registry: `handlers[event.type](payload)`.",
+    "rubric": [
+      "Recognises string-based dispatch as invisible to static analysis",
+      "Classifies these symbols as 'do not delete — flag only'",
+      "Suggests a runtime or textual verification (grep the registry keys, run the test suite) before any removal",
+      "Explains the same caveat for eval, require(variable), and decorator-driven frameworks"
+    ],
+    "anti_patterns": [
+      "Approves deletion because the caller count is 0",
+      "Claims graph-it resolves dynamic dispatch"
+    ],
+    "gold_notes": "Dynamic dispatch, decorators (@Component, @Injectable) and reflection defeat static reachability.",
+    "should_trigger": true
+  },
+  {
+    "id": "dch-train-05",
+    "task_type": "test-only",
+    "prompt": "Some symbols are only used by test files. Should I remove them?",
+    "context": "Repo root: /work/shop. `mockPaymentGateway` in src/mocks/payment.ts has 3 callers, all in *.test.ts files.",
+    "rubric": [
+      "Confirms caller locations with `get_symbol_callers` rather than assuming",
+      "Classifies the symbol as 'test-only' in its own section of the plan",
+      "Does not put test-only symbols in the safe-to-delete bucket",
+      "Recommends discussing with the team, since test fixtures are often intentional"
+    ],
+    "anti_patterns": [
+      "Treats test-only symbols as ordinary dead code",
+      "Deletes the tests to make the production symbol look unused"
+    ],
+    "gold_notes": "Test-only is a distinct risk class in the ranking table.",
+    "should_trigger": true
+  },
+  {
+    "id": "dch-train-06",
+    "task_type": "report-format",
+    "prompt": "Give me the cleanup report in a form I can paste into our tech-debt ticket.",
+    "context": "Repo root: /work/shop. Scan already run: 3 ghost files, 11 orphan symbols, 2 barrel exports, 4 test-only symbols.",
+    "rubric": [
+      "Produces the Dead Code Scan Report structure: scanned counts, ghost files, safe orphan symbols, review-first, test-only",
+      "Uses tables with file, symbol, kind and caller counts",
+      "Gives the recommended deletion order: ghost files, then non-barrel orphan symbols, then barrel exports, then test-only",
+      "Includes the safety checklist (published library, package.json exports, re-scan, test after each batch, small commits)"
+    ],
+    "anti_patterns": [
+      "Emits an unstructured prose paragraph instead of the report sections",
+      "Fabricates counts that contradict the numbers given in the prompt"
+    ],
+    "gold_notes": "The report shape is part of the skill's contract.",
+    "should_trigger": true
+  }
+]

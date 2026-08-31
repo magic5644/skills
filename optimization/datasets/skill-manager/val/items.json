@@ -1,0 +1,74 @@
+[
+  {
+    "id": "skm-val-01",
+    "task_type": "french-trigger",
+    "prompt": "Je voudrais désinstaller quelques skills, tu peux m'aider à gérer ça ?",
+    "context": "macOS, skills dans ~/.claude/skills et ~/.copilot/skills, fzf installé.",
+    "rubric": [
+      "Recognises the French request as skill management and applies the skill",
+      "Asks about scope, then runs `./scripts/uninstall-interactive.sh`",
+      "Explains the fzf interaction (TAB for multi-select, ENTER to confirm, ESC to cancel)",
+      "Answers in French"
+    ],
+    "anti_patterns": [
+      "Replies in English",
+      "Deletes directories directly instead of using the interactive script"
+    ],
+    "gold_notes": "French triggers: désinstaller skills, supprimer skills, gérer mes skills.",
+    "should_trigger": true
+  },
+  {
+    "id": "skm-val-02",
+    "task_type": "custom-dir",
+    "prompt": "My skills live in /opt/team-skills, not the default place. Can the uninstaller handle that?",
+    "context": "Linux, shared machine, /opt/team-skills is writable by the current user.",
+    "rubric": [
+      "Sets `SKILLS_DIR=/opt/team-skills` (export or inline) before running the script",
+      "States that SKILLS_DIR takes precedence over the default detection order",
+      "Confirms the directory is the intended target before removing anything",
+      "Flags that a shared directory affects other users on the machine"
+    ],
+    "anti_patterns": [
+      "Symlinks the custom directory into ~/.claude/skills as a workaround",
+      "Removes shared team skills without flagging the shared impact"
+    ],
+    "gold_notes": "Detection priority puts SKILLS_DIR first.",
+    "should_trigger": true
+  },
+  {
+    "id": "skm-val-03",
+    "task_type": "empty-state",
+    "prompt": "Uninstall my skills.",
+    "context": "Fresh machine. None of the skill directories exist.",
+    "rubric": [
+      "Detects that no skills are installed and says so instead of erroring out",
+      "Exits gracefully without creating or deleting anything",
+      "Optionally shows how to create the directory (`mkdir -p ~/.claude/skills/`) or install skills",
+      "Keeps the answer short"
+    ],
+    "anti_patterns": [
+      "Reports a successful uninstall when nothing was installed",
+      "Creates skill directories the user did not ask for and then reports them as cleaned"
+    ],
+    "gold_notes": "'No skills installed' is a documented error-handling case.",
+    "should_trigger": true
+  },
+  {
+    "id": "skm-val-04",
+    "task_type": "duplicates",
+    "prompt": "I think the same skills are installed twice, in Copilot and in Claude. Sort it out.",
+    "context": "macOS. ~/.copilot/skills and ~/.claude/skills both contain graph-it-live and pr-review.",
+    "rubric": [
+      "Lists both directories and shows the overlap explicitly",
+      "Explains that each agent reads its own directory, so both copies are used by different tools",
+      "Asks which platform should keep the skill before removing anything",
+      "Uses `--scope global` with the interactive selector, whose entries are tagged by location (e.g. [copilot] skill-name)"
+    ],
+    "anti_patterns": [
+      "Deletes one copy unilaterally, breaking that agent's skill",
+      "Claims the duplicate is a bug in the skill installer"
+    ],
+    "gold_notes": "The selector shows location tags, which is exactly what disambiguates duplicates.",
+    "should_trigger": true
+  }
+]

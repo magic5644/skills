@@ -1,0 +1,73 @@
+[
+  {
+    "id": "onb-test-01",
+    "task_type": "small-project",
+    "prompt": "Quick orientation on this small CLI project, please.",
+    "context": "Repo root: /work/tinycli, 23 source files, index not built.",
+    "rubric": [
+      "Runs `graph-it scan` then `graph-it architecture --format toon`",
+      "Runs analyze_file_logic across all files, since the project is under 50 files",
+      "Still reports entry points, business logic and the most complex module, scaled to the project size",
+      "Keeps the tour proportionate instead of padding it with empty sections"
+    ],
+    "anti_patterns": [
+      "Samples only 20 files when the whole project is smaller than that",
+      "Skips the scan on the grounds the project is small"
+    ],
+    "gold_notes": "Sample rule: top 20 by size, or all files for projects under 50 files.",
+    "should_trigger": true
+  },
+  {
+    "id": "onb-test-02",
+    "task_type": "ambiguous-entry",
+    "prompt": "Which file is the real entry point? There are three index.ts files.",
+    "context": "Repo root: /work/shop with src/index.ts, src/api/index.ts and src/core/index.ts.",
+    "rubric": [
+      "Measures each candidate in both directions rather than choosing by path",
+      "Applies the fan-in/fan-out rule: true entry point = high fan-out, zero fan-in",
+      "Classifies the barrel-style index.ts files (high fan-in) as shared core, not entry points",
+      "Cross-checks against bootstrap/initialisation patterns in the call tree"
+    ],
+    "anti_patterns": [
+      "Picks src/index.ts because of its path",
+      "Calls all three files entry points"
+    ],
+    "gold_notes": "Barrels are high fan-in; they are hubs, not roots.",
+    "should_trigger": true
+  },
+  {
+    "id": "onb-test-03",
+    "task_type": "negative-trigger",
+    "prompt": "Bump all dependencies to their latest majors and fix the breakages.",
+    "context": "Repo root: /work/shop, npm project with 60 dependencies.",
+    "rubric": [
+      "Handles the dependency upgrade request rather than running an architecture tour",
+      "Does not produce a Project Tour report",
+      "Keeps the answer on upgrade strategy and breakage triage"
+    ],
+    "anti_patterns": [
+      "Runs the onboarding workflow because the skill is loaded",
+      "Delivers entry-point tables nobody asked for"
+    ],
+    "gold_notes": "Negative example guarding against over-triggering.",
+    "should_trigger": false
+  },
+  {
+    "id": "onb-test-04",
+    "task_type": "handoff",
+    "prompt": "Someone asked me during the tour: what breaks if we change orderService.create? Answer that too.",
+    "context": "Repo root: /work/shop, file src/services/orderService.ts, tour already run.",
+    "rubric": [
+      "Answers with `graph-it tool get_impact_analysis --filePath=/work/shop/src/services/orderService.ts --symbolName=create`",
+      "Uses an absolute path",
+      "Reports callers and breaking-change evidence from the output rather than from the tour summary",
+      "Points to the graph-it-live skill for deeper call-graph questions beyond the tour"
+    ],
+    "anti_patterns": [
+      "Answers from the earlier tour tables without running the impact query",
+      "Claims behavioral safety from static evidence"
+    ],
+    "gold_notes": "Tips section routes deeper call-graph questions to graph-it-live.",
+    "should_trigger": true
+  }
+]

@@ -1,0 +1,75 @@
+[
+  {
+    "id": "dch-test-01",
+    "task_type": "french-trigger",
+    "prompt": "Est-ce qu'il reste du code mort dans le dossier src/services ? J'aimerais nettoyer avant la refacto.",
+    "context": "Repo root: /work/shop, dossier src/services avec 22 fichiers TypeScript.",
+    "rubric": [
+      "Recognises the French request as a dead-code cleanup task and applies the skill",
+      "Runs `graph-it scan` then scopes the scan to src/services (`graph-it check src/services/`)",
+      "Confirms candidates with get_symbol_callers / find_referencing_files",
+      "Delivers a ranked deletion plan with risk classes",
+      "Answers in French, matching the user's language"
+    ],
+    "anti_patterns": [
+      "Asks the user to rephrase in English",
+      "Skips the confirmation step and proposes immediate deletion"
+    ],
+    "gold_notes": "The skill description lists French triggers: code mort, code inutilisé, nettoyer le code.",
+    "should_trigger": true
+  },
+  {
+    "id": "dch-test-02",
+    "task_type": "bundle-size",
+    "prompt": "Our bundle is huge. Can removing unused code help, and where do I start?",
+    "context": "Repo root: /work/web, Vite + React app, index built.",
+    "rubric": [
+      "Runs the workspace-wide dead-code scan and ranks candidates by impact",
+      "Starts with ghost files as the highest-impact, lowest-precision-cost target",
+      "Notes that bundler tree-shaking already drops some unreferenced exports, so the graph result is about source hygiene as well as bytes",
+      "Recommends measuring the bundle before and after each deletion batch"
+    ],
+    "anti_patterns": [
+      "Promises a specific bundle-size reduction with no measurement",
+      "Recommends deleting files without the confirmation step"
+    ],
+    "gold_notes": "Deletion order: ghost files, orphan symbols, barrel exports, test-only.",
+    "should_trigger": true
+  },
+  {
+    "id": "dch-test-03",
+    "task_type": "negative-trigger",
+    "prompt": "Write unit tests for src/services/pricing.ts.",
+    "context": "Repo root: /work/shop, Vitest configured.",
+    "rubric": [
+      "Writes or plans tests instead of running a dead-code sweep",
+      "Does not produce a deletion plan or run `graph-it check`",
+      "Keeps the answer focused on the testing request"
+    ],
+    "anti_patterns": [
+      "Runs a dead-code scan because the skill is loaded",
+      "Proposes deleting code the user did not ask about"
+    ],
+    "gold_notes": "Negative example guarding against over-triggering.",
+    "should_trigger": false
+  },
+  {
+    "id": "dch-test-04",
+    "task_type": "pre-onboarding",
+    "prompt": "A new dev joins Monday. I want the repo to be less noisy before then.",
+    "context": "Repo root: /work/shop, ~600 files, last cleanup over a year ago.",
+    "rubric": [
+      "Runs `graph-it scan` and takes an `graph-it architecture --format toon` baseline first",
+      "Produces the ranked deletion plan rather than deleting directly",
+      "Sequences the work: ghost files first, then isolated orphan symbols",
+      "Points to the onboarding-express skill for the architecture tour afterwards",
+      "Recommends small commits so the new dev's git history stays readable"
+    ],
+    "anti_patterns": [
+      "Starts deleting files without a plan or review step",
+      "Ignores the architecture baseline on an unfamiliar workspace"
+    ],
+    "gold_notes": "Related skills: onboarding-express before/after the sweep, pr-review for the cleanup diff.",
+    "should_trigger": true
+  }
+]

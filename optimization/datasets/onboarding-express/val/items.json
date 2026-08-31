@@ -1,0 +1,77 @@
+[
+  {
+    "id": "onb-val-01",
+    "task_type": "french-trigger",
+    "prompt": "Je dois reprendre ce projet. Tu peux me faire une visite guidée : point d'entrée, logique métier, module le plus complexe ?",
+    "context": "Repo root: /work/shop, projet TypeScript, index non construit.",
+    "rubric": [
+      "Recognises the French request as an onboarding tour and applies the workflow",
+      "Runs `graph-it scan` then `graph-it architecture --format toon`",
+      "Covers the three requested axes: entry points, business logic, most complex module",
+      "Delivers the structured Project Tour report",
+      "Answers in French"
+    ],
+    "anti_patterns": [
+      "Replies in English",
+      "Skips the architecture pass and answers from filenames"
+    ],
+    "gold_notes": "French triggers in the description: découvrir le projet, visite guidée, point d'entrée, logique métier.",
+    "should_trigger": true
+  },
+  {
+    "id": "onb-val-02",
+    "task_type": "pre-refactor",
+    "prompt": "Before I refactor the pricing code I need to understand the structure around it.",
+    "context": "Repo root: /work/shop, target area src/domain/pricing.ts.",
+    "rubric": [
+      "Runs `graph-it scan` first",
+      "Builds the two-way picture of pricing.ts: generate_codemap plus find_referencing_files with absolute paths",
+      "Runs analyze_file_logic to expose internal call depth and cycles",
+      "Warns about blast radius and points to get_impact_analysis before changing signatures",
+      "Suggests pr-review on the resulting diff before merging"
+    ],
+    "anti_patterns": [
+      "Starts proposing refactors before mapping dependents",
+      "Uses relative paths in `graph-it tool` calls"
+    ],
+    "gold_notes": "The tour is also the pre-refactor safety pass.",
+    "should_trigger": true
+  },
+  {
+    "id": "onb-val-03",
+    "task_type": "incomplete-index",
+    "prompt": "The tour output looks wrong — half the packages are missing.",
+    "context": "Repo root: /work/platform. `graph-it scan` was run from the user's home directory by mistake.",
+    "rubric": [
+      "Re-runs `graph-it scan` from the correct project (or package) root",
+      "Checks index state before trusting further results",
+      "Reports the unanalysed area explicitly rather than filling the gap with guesses",
+      "For a monorepo, scans per package instead of once at the root"
+    ],
+    "anti_patterns": [
+      "Describes the missing packages from assumptions",
+      "Continues the tour on the broken index"
+    ],
+    "gold_notes": "The CLI resolves the workspace from the scan cwd or WORKSPACE_ROOT.",
+    "should_trigger": true
+  },
+  {
+    "id": "onb-val-04",
+    "task_type": "report-format",
+    "prompt": "Turn the analysis into a document I can hand to the new hire.",
+    "context": "Repo root: /work/shop. Steps 1-6 already run; results available.",
+    "rubric": [
+      "Produces the Project Tour report with the 3 Main Entry Points table (file, role, type)",
+      "Includes the Business Logic Core table with exported symbol counts and referenced-by counts",
+      "Includes the Most Complex Module section with its concrete signals and a blast-radius recommendation",
+      "Includes the Critical Path Mermaid block",
+      "Suggests running dead-code-hunter afterwards so the new hire reads less noise"
+    ],
+    "anti_patterns": [
+      "Delivers prose without the report tables",
+      "Invents metric values not produced by the commands"
+    ],
+    "gold_notes": "Report shape is part of the skill contract; related skills close the loop.",
+    "should_trigger": true
+  }
+]

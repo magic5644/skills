@@ -1,0 +1,75 @@
+[
+  {
+    "id": "dch-val-01",
+    "task_type": "monorepo",
+    "prompt": "Clean up dead code in our monorepo before the refactor sprint.",
+    "context": "Repo root: /work/platform with packages/api, packages/web, packages/shared. packages/shared is consumed by the other two.",
+    "rubric": [
+      "Scans per package (cd packages/<name> && graph-it scan) rather than once at the monorepo root",
+      "Explains that a root-level scan produces cross-package false positives",
+      "Treats packages/shared exports as review-first because other packages consume them",
+      "Takes an architecture baseline (`graph-it architecture --format toon`) to identify entry points and generated areas first"
+    ],
+    "anti_patterns": [
+      "Runs one root scan and presents the result as authoritative",
+      "Marks shared-package exports as safe to delete"
+    ],
+    "gold_notes": "Monorepo rule: scan per package. Generated code and entry points need review, not automatic deletion.",
+    "should_trigger": true
+  },
+  {
+    "id": "dch-val-02",
+    "task_type": "post-feature-removal",
+    "prompt": "We just ripped out the loyalty-points feature. Is anything left dangling?",
+    "context": "Repo root: /work/shop. The feature's UI and routes were deleted in the previous commit; helper modules may remain.",
+    "rubric": [
+      "Re-runs `graph-it scan` because imports changed in the previous commit",
+      "Runs the workspace-wide scan to find newly orphaned symbols and files",
+      "Confirms candidates with find_referencing_files / get_symbol_callers",
+      "Proposes deletion in small, revertable commits with the test suite run between batches"
+    ],
+    "anti_patterns": [
+      "Uses a stale index without re-scanning after the removal commit",
+      "Bundles every deletion into one large commit"
+    ],
+    "gold_notes": "Re-scan after any refactor that changed imports; this is in the safety checklist.",
+    "should_trigger": true
+  },
+  {
+    "id": "dch-val-03",
+    "task_type": "single-file",
+    "prompt": "Just check src/utils/format.ts — anything unused in there?",
+    "context": "Repo root: /work/shop.",
+    "rubric": [
+      "Runs `graph-it scan` first",
+      "Uses the per-file path: `graph-it check src/utils/format.ts` or `find_unused_symbols --filePath=<abs>`",
+      "Uses an absolute path for the `graph-it tool` variant",
+      "Also verifies the file itself is referenced with `find_referencing_files --targetPath=<abs>`",
+      "Keeps the answer scoped to the requested file"
+    ],
+    "anti_patterns": [
+      "Expands to a full workspace deletion plan the user did not ask for",
+      "Skips the file-level orphan check"
+    ],
+    "gold_notes": "A file whose symbols look internally used can still be a ghost file.",
+    "should_trigger": true
+  },
+  {
+    "id": "dch-val-04",
+    "task_type": "framework-magic",
+    "prompt": "NestJS services are showing up as unused in the report. Is that real?",
+    "context": "Repo root: /work/api, NestJS project using @Injectable() and @Controller() decorators with DI resolution at runtime.",
+    "rubric": [
+      "Explains that decorator-based DI resolves at runtime and is invisible to static analysis",
+      "Recommends excluding framework entry files and decorated providers from the scan",
+      "Classifies the flagged services as 'do not delete — flag only'",
+      "Suggests verifying with the framework's own module registration before touching anything"
+    ],
+    "anti_patterns": [
+      "Confirms the services are dead because the caller count is 0",
+      "Recommends deleting decorators to make the analysis cleaner"
+    ],
+    "gold_notes": "Framework magic is an explicit limitation of the skill.",
+    "should_trigger": true
+  }
+]

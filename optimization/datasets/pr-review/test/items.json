@@ -1,0 +1,74 @@
+[
+  {
+    "id": "pr-test-01",
+    "task_type": "critical-risk",
+    "prompt": "The gate came back critical on our release branch. Walk me through what to do.",
+    "context": "Repo root: /work/shop, release/2.4 vs origin/main, 3 symbols flagged critical in src/payments/.",
+    "rubric": [
+      "Maps `critical` to: block the merge and require explicit mitigation plus targeted verification",
+      "Escalates each flagged symbol with get_impact_analysis or get_symbol_callers using absolute paths",
+      "Requires compatibility handling for the changed signatures and named tests for the affected callers",
+      "Cites command output as evidence rather than asserting runtime behaviour",
+      "Keeps payments changes under domain and security review in addition to the static gate"
+    ],
+    "anti_patterns": [
+      "Suggests overriding the gate to unblock the release",
+      "Infers runtime behaviour from graph data"
+    ],
+    "gold_notes": "Static risk is a signal, not a substitute for unit, integration, security or human domain review.",
+    "should_trigger": true
+  },
+  {
+    "id": "pr-test-02",
+    "task_type": "ci-troubleshooting",
+    "prompt": "Our review gate fails on fork PRs with a permissions error on the sticky comment.",
+    "context": "Public repo, workflow triggered on pull_request, comment input hardcoded to true.",
+    "rubric": [
+      "Explains that fork pull requests get a read-only GITHUB_TOKEN, so commenting fails",
+      "Sets `comment: ${{ github.event.pull_request.head.repo.fork && 'false' || 'true' }}`",
+      "Keeps the analysis running as an informative gate for forks",
+      "Warns against exposing write tokens to untrusted fork code"
+    ],
+    "anti_patterns": [
+      "Recommends pull_request_target with a write token to make comments work on forks",
+      "Disables the whole gate instead of just the comment"
+    ],
+    "gold_notes": "token is required only when comment: true; least privilege is explicit in the skill.",
+    "should_trigger": true
+  },
+  {
+    "id": "pr-test-03",
+    "task_type": "negative-trigger",
+    "prompt": "Squash my last four commits and force-push the branch.",
+    "context": "Repo root: /work/shop, branch feature/checkout-v2, already pushed.",
+    "rubric": [
+      "Handles the git history request instead of running a PR review",
+      "Does not run `graph-it review-pr`",
+      "Warns that force-pushing rewrites history shared with anyone who pulled the branch"
+    ],
+    "anti_patterns": [
+      "Runs a diff risk review the user did not ask for",
+      "Force-pushes without flagging the history rewrite"
+    ],
+    "gold_notes": "Negative example guarding against over-triggering.",
+    "should_trigger": false
+  },
+  {
+    "id": "pr-test-04",
+    "task_type": "unused-exports",
+    "prompt": "The PR report lists two unused exports added by this diff. Blocking or not?",
+    "context": "Repo root: /work/shop. New file src/services/reporting.ts exports buildMonthlyReport and buildQuarterlyReport; only the monthly one is wired up.",
+    "rubric": [
+      "Confirms with `graph-it tool get_symbol_callers` / `find_referencing_files` using absolute paths before judging",
+      "Classifies it as a non-blocking finding with a follow-up, unless the export is dead on arrival with no planned consumer",
+      "Asks whether the quarterly path is intentional groundwork or leftover scaffolding",
+      "Places the finding in the non-blocking section of the review output"
+    ],
+    "anti_patterns": [
+      "Blocks the merge on an unused export with no other evidence",
+      "Ignores the finding entirely"
+    ],
+    "gold_notes": "unused-export evidence is one of the review-pr signals; severity depends on intent.",
+    "should_trigger": true
+  }
+]

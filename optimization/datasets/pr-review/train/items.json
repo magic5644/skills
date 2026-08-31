@@ -1,0 +1,113 @@
+[
+  {
+    "id": "pr-train-01",
+    "task_type": "local-review",
+    "prompt": "Review my branch before I open the PR.",
+    "context": "Repo root: /work/shop, branch feature/checkout-v2, base origin/main, graph-it installed.",
+    "rubric": [
+      "Runs `git fetch origin main` (or equivalent) so the base ref exists locally",
+      "Runs `graph-it review-pr --base origin/main --format markdown` from the repository root",
+      "Does not run a separate `graph-it scan` first, because review-pr indexes automatically",
+      "Reads risk, score, changedFiles, symbols, limitations and isPartial before concluding",
+      "Produces the required output order: verdict, blocking findings, non-blocking findings, test assessment, limitations"
+    ],
+    "anti_patterns": [
+      "Gives a verdict without citing the command output that supports it",
+      "Omits the limitations section"
+    ],
+    "gold_notes": "--base is required; --head defaults to HEAD. Output order is part of the contract.",
+    "should_trigger": true
+  },
+  {
+    "id": "pr-train-02",
+    "task_type": "partial-analysis",
+    "prompt": "Here's the review-pr output — can I merge? risk: low, isPartial: true, limitations: ['impact traversal reached depth limit', '2 .py files unsupported'].",
+    "context": "Repo root: /work/shop. 41 changed files, depth 3.",
+    "rubric": [
+      "Refuses to call the review complete because isPartial is true and limitations are non-empty",
+      "Reports every limitation verbatim or faithfully summarised",
+      "Names the manual check that closes each limitation (raise --depth, review the Python files by hand)",
+      "Explains that low risk plus partial analysis is not evidence of safety"
+    ],
+    "anti_patterns": [
+      "Approves the merge on the strength of `risk: low`",
+      "Silently drops one of the two limitations"
+    ],
+    "gold_notes": "Never complete a review while isPartial is true; signature analysis covers TS/JS extensions only.",
+    "should_trigger": true
+  },
+  {
+    "id": "pr-train-03",
+    "task_type": "escalation",
+    "prompt": "review-pr reports risk: high on updateUser in src/api/users.ts. What now?",
+    "context": "Repo root: /work/shop, review-pr already run against origin/main.",
+    "rubric": [
+      "Escalates with `graph-it tool get_impact_analysis --filePath=/work/shop/src/api/users.ts --symbolName=updateUser --format=toon`",
+      "Also inspects direct callers with get_symbol_callers, or the neighbourhood with query_call_graph --depth=3",
+      "Uses absolute paths for every `graph-it tool` file parameter",
+      "Maps `high` to the documented action: block until compatibility, callers and tests are addressed",
+      "Cites the command output as evidence for each blocking finding"
+    ],
+    "anti_patterns": [
+      "Speculates about runtime behavior from graph data",
+      "Downgrades the risk without new evidence"
+    ],
+    "gold_notes": "Risk table: low/medium/high/critical map to explicit review actions.",
+    "should_trigger": true
+  },
+  {
+    "id": "pr-train-04",
+    "task_type": "ci-gate",
+    "prompt": "Set up an automatic PR review gate in GitHub Actions.",
+    "context": "Public repository that receives pull requests from forks.",
+    "rubric": [
+      "Uses the composite action `magic5644/Graph-It-Live/.github/actions/graph-it-review-gate` pinned to a version",
+      "Checks out with `fetch-depth: 0` so the base ref is available",
+      "Disables commenting for fork pull requests instead of exposing a write token to fork code",
+      "Sets `fail-on-risk` (high or critical) and bounded `max-depth` / `max-files`",
+      "Applies least privilege on `permissions`, dropping `pull-requests: write` when comments are off"
+    ],
+    "anti_patterns": [
+      "Grants `pull-requests: write` unconditionally on a fork-facing workflow",
+      "Uses `actions/checkout` without `fetch-depth: 0`"
+    ],
+    "gold_notes": "Action inputs: token, base-ref, comment, fail-on-risk, cli-version, max-depth, max-files. Outputs: risk, score, cli-version.",
+    "should_trigger": true
+  },
+  {
+    "id": "pr-train-05",
+    "task_type": "test-assessment",
+    "prompt": "review-pr found no test candidates for the changed files. Does that mean tests aren't needed?",
+    "context": "Repo root: /work/shop, 6 changed files in src/services/.",
+    "rubric": [
+      "States that missing test candidates means manual test selection is required, not that testing is unnecessary",
+      "Inspects the actual tests rather than trusting the candidate list",
+      "Names concrete verification for the changed behaviour",
+      "Includes the gap in the test-assessment section of the review output"
+    ],
+    "anti_patterns": [
+      "Concludes that no tests are needed",
+      "Treats the reported candidate list as complete coverage"
+    ],
+    "gold_notes": "Static evidence supplements tests, security review and domain review; it never replaces them.",
+    "should_trigger": true
+  },
+  {
+    "id": "pr-train-06",
+    "task_type": "bounded-run",
+    "prompt": "The review is timing out — the branch touches almost 500 files.",
+    "context": "Repo root: /work/platform, branch refactor/di-container, base origin/main.",
+    "rubric": [
+      "Bounds the run with `--max-files` (1-1000) and `--depth` (1-10)",
+      "Uses `--format toon` for structured agent analysis of a large report",
+      "Warns that bounding raises isPartial and adds limitations that must be reported",
+      "Suggests reviewing in slices (per package or per subsystem) rather than dropping analysis"
+    ],
+    "anti_patterns": [
+      "Recommends skipping the analysis entirely",
+      "Bounds the run and then reports the result as complete"
+    ],
+    "gold_notes": "--depth 1..10, --max-files 1..1000; bounding is honest only if the limitation is reported.",
+    "should_trigger": true
+  }
+]

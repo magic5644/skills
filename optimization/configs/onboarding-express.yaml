@@ -1,0 +1,6 @@
+# Optimize the onboarding-express skill document.
+_base_: _base_/agentskill.yaml
+
+env:
+  skill_init: onboarding-express/SKILL.md
+  split_dir: optimization/datasets/onboarding-express

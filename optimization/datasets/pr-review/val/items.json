@@ -1,0 +1,76 @@
+[
+  {
+    "id": "pr-val-01",
+    "task_type": "french-trigger",
+    "prompt": "Peux-tu revoir cette PR ? Le risque de merge me préoccupe, la base est origin/develop.",
+    "context": "Repo root: /work/shop, branche feature/paiement-sepa.",
+    "rubric": [
+      "Applies the PR-review workflow from the French request",
+      "Runs `graph-it review-pr --base origin/develop` with the base ref the user gave, not a hardcoded origin/main",
+      "Reads risk, score, isPartial and limitations before concluding",
+      "Produces verdict, blocking findings, non-blocking findings, test assessment, limitations",
+      "Answers in French"
+    ],
+    "anti_patterns": [
+      "Uses origin/main instead of the base ref the user specified",
+      "Replies in English"
+    ],
+    "gold_notes": "French triggers are in the description: revoir cette PR, analyser ce diff, risque de merge.",
+    "should_trigger": true
+  },
+  {
+    "id": "pr-val-02",
+    "task_type": "non-js-files",
+    "prompt": "Review this diff — it's mostly Python and a Terraform module.",
+    "context": "Repo root: /work/infra, base origin/main. Changed: 9 .py files, 3 .tf files, 1 .ts file.",
+    "rubric": [
+      "Runs review-pr but states that breaking-signature analysis covers TypeScript and JavaScript extensions",
+      "Lists the non-JS/TS files as limitations requiring manual verification",
+      "Reviews the .ts file with the graph evidence and the rest by reading the diff",
+      "Does not present the low static risk as a verdict on the Python or Terraform changes"
+    ],
+    "anti_patterns": [
+      "Claims the Python changes were statically verified",
+      "Skips the diff reading because the tool returned little evidence"
+    ],
+    "gold_notes": "Unsupported file types surface in `limitations`; every limitation needs a named manual check.",
+    "should_trigger": true
+  },
+  {
+    "id": "pr-val-03",
+    "task_type": "stale-index",
+    "prompt": "I ran review-pr an hour ago, then rebased and pushed more commits. Can I reuse the report?",
+    "context": "Repo root: /work/shop.",
+    "rubric": [
+      "Says the earlier report is stale and re-runs `graph-it review-pr --base <ref>`",
+      "Notes that review-pr indexes automatically, so the re-run refreshes its own analysis",
+      "Recommends `graph-it scan` before unrelated follow-up `graph-it tool` calls, since the repository changed",
+      "Re-reads risk and limitations from the new run"
+    ],
+    "anti_patterns": [
+      "Reuses the stale report",
+      "Claims a `graph-it scan` is required before review-pr itself"
+    ],
+    "gold_notes": "review-pr self-indexes; other tools need a fresh scan after repository changes.",
+    "should_trigger": true
+  },
+  {
+    "id": "pr-val-04",
+    "task_type": "verdict-quality",
+    "prompt": "Give me the final verdict for this PR: risk medium, 12 changed files, no breaking signatures, 1 new cycle reported, isPartial false, limitations empty.",
+    "context": "Repo root: /work/shop, feature branch adding a caching layer.",
+    "rubric": [
+      "Gives an explicit verdict: approve, approve with follow-ups, or changes requested",
+      "States that the analysis was complete (isPartial false, no limitations)",
+      "Treats the new dependency cycle as a concrete finding with a requested fix, not a footnote",
+      "Applies the medium-risk action: inspect changed symbols and direct dependents",
+      "States that the absence of breaking signatures does not establish behavioral safety"
+    ],
+    "anti_patterns": [
+      "Ends without a clear verdict",
+      "Ignores the newly introduced cycle"
+    ],
+    "gold_notes": "Findings order: verdict, blocking, non-blocking, tests, limitations.",
+    "should_trigger": true
+  }
+]

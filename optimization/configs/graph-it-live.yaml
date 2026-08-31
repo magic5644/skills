@@ -1,0 +1,6 @@
+# Optimize the graph-it-live skill document.
+_base_: _base_/agentskill.yaml
+
+env:
+  skill_init: graph-it-live/SKILL.md
+  split_dir: optimization/datasets/graph-it-live

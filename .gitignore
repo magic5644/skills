@@ -1,0 +1,24 @@
+# SkillOpt toolchain (cloned + installed by scripts/skillopt-bootstrap.sh)
+.skillopt/
+
+# Optimization run artifacts (rollouts, logs, candidate skills)
+optimization/outputs/
+
+# Provider credentials
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Adopted-skill backups
+*.md.bak-*
+
+# OS noise
+.DS_Store
+
+# Serena toolchain (cloned + installed by scripts/serena-bootstrap.sh)
+.serena/
+
