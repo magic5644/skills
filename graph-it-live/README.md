@@ -18,7 +18,7 @@ Graph-It-Live is an AI skill that gives your coding agent full access to the [gr
 - **Cycle detection** — Circular dependency identification
 - **Reverse lookup** — Find all files importing a given file
 - **PR review** — Risk-score a Git diff for API breaks, impact, cycles, and test candidates
-- **Tool invocation** — Run the installed tool inventory with `graph-it tool --list`
+- **Tool discovery** — Inspect installed CLI analysis tools with `graph-it tool --list`
 - **Natural language query** via `graph-it query`
 - **Markdown wiki generation** via `graph-it wiki`
 - **Session telemetry** via `graph-it stats`
@@ -129,19 +129,23 @@ graph-it wiki
 | `wiki` | Generate markdown wiki from call graph | `graph-it wiki` |
 | `stats` | TOON and LLM session telemetry | `graph-it stats` |
 | `serve` | Launch MCP stdio server | `graph-it serve` |
-| `tool <name>` | Invoke any MCP tool directly | `graph-it tool get_index_status` |
+| `tool <name>` | Invoke an advertised analysis tool directly through the CLI | `graph-it tool get_index_status` |
 | `update` | Update to latest version | `graph-it update` |
 
-### Output Formats
+`graph-it tool --list` is the installed CLI's authoritative textual inventory; it can change
+between releases. `graph-it tool <name>` invokes analysis directly through the CLI, while
+`graph-it serve` starts the MCP server. In MCP mode, use only tools and parameters advertised by
+the connected host; its schema may differ from the CLI inventory. CLI `--format` and MCP
+`response_format` are separate interfaces.
 
-All commands support `--format`:
+CLI output formats are command-specific; consult `graph-it --help` or command help:
 
 | Format | Description | Availability |
 | ------ | ----------- | ------------ |
-| `text` | Human-readable (default) | All commands |
-| `json` | Structured JSON | All commands |
-| `toon` | Token-Optimized (30-60% smaller) | All commands |
-| `markdown` | Markdown-wrapped JSON | All commands |
+| `text` | Human-readable (default) | Commands that advertise `--format` |
+| `json` | Structured JSON | Commands that advertise `--format` |
+| `toon` | Token-Optimized (30-60% smaller) | Commands that advertise `--format` |
+| `markdown` | Markdown output | Commands that advertise `--format` |
 | `mermaid` | Mermaid diagram | `trace`, `path` only |
 
 ---
@@ -156,46 +160,15 @@ graph-it serve
 
 See `SKILL.md` for full MCP client configuration for VS Code, Cursor, Claude Desktop, Claude Code CLI, and Windsurf.
 
-Run `graph-it tool --list` to inspect the analysis tools available in the installed release.
-The MCP server additionally exposes workspace management and natural-language/wiki operations.
+For MCP calls, the connected host's advertised tool schema is authoritative; use output options
+such as `response_format` only when that schema supports them.
 
 ---
 
 ## CLI Analysis Tools (`graph-it tool`)
 
-| Tool | Description |
-| ---- | ----------- |
-| `analyze_dependencies` | Direct imports and exports of a file |
-| `crawl_dependency_graph` | Full dependency tree from an entry file |
-| `find_referencing_files` | Reverse dependency lookup |
-| `expand_node` | Expand dependencies beyond known paths |
-| `parse_imports` | Raw import statements |
-| `verify_dependency_usage` | Check if an import is actually used |
-| `resolve_module_path` | Resolve module specifier to absolute path |
-| `get_symbol_graph` | Symbol-level dependencies within a file |
-| `find_unused_symbols` | Dead code detection |
-| `get_symbol_dependents` | Symbols depending on a given symbol |
-| `trace_function_execution` | Full recursive call chain |
-| `get_symbol_callers` | All callers of a symbol (O(1) lookup) |
-| `analyze_breaking_changes` | Breaking change detection |
-| `get_impact_analysis` | Full impact: callers + breaking changes |
-| `get_index_status` | Dependency index status |
-| `invalidate_files` | Flush cache for specific files |
-| `rebuild_index` | Full index rebuild |
-| `analyze_file_logic` | Intra-file call hierarchy |
-| `generate_codemap` | Comprehensive file structural overview |
-| `query_call_graph` | BFS callers/callees via SQLite index |
-| `scan_dead_code` | Workspace-wide dead code scan |
-
-MCP-only additions (available via `graph-it serve`):
-
-| Tool | Description |
-| ---- | ----------- |
-| `set_workspace` | Set project directory for a running MCP server |
-| `query_natural_language` | Natural language question over call graph |
-| `generate_wiki` | Generate navigable markdown wiki from call graph |
-
----
+Discover installed CLI tools with `graph-it tool --list` and consult CLI help for parameters.
+Examples elsewhere in this README illustrate usage; they are not a canonical tool whitelist.
 
 ## Using with AI Agents
 

@@ -5,11 +5,11 @@ Powered by [Graph-It-Live](../graph-it-live/).
 
 ## What It Does
 
-- Detects **exported symbols with 0 callers** across your project
+- Surfaces candidate unused exports and unreferenced files for evidence-based review
 - Identifies **ghost files** (files not imported anywhere, not an entry point)
-- Confirms candidates via `get_symbol_callers` to eliminate false positives
-- Classifies each candidate by **deletion safety** (Safe / Likely safe / Review first / Do not delete)
-- Produces a **prioritized deletion plan** with ready-to-run commands
+- Requires incoming-reference checks for candidate symbols, including type-only references when supported; zero call sites alone never confirms dead code
+- Classifies candidates as **unconfirmed**, **manual review**, or **do not delete**
+- Produces a **prioritized review plan**; missing reference evidence never yields a deletion recommendation
 
 ## Requirements
 
@@ -33,17 +33,20 @@ Trigger with natural language in your agent:
 
 ## Scan Scope
 
-`graph-it check` scans the workspace in one pass; pass a file or folder to constrain the scope.
-For agent integrations, use `scan_dead_code` with `scopePath`:
+Use CLI capabilities as advertised by the installed release. The observed CLI help describes
+`graph-it check` as file-scoped. If `graph-it tool --list` advertises `scan_dead_code`, use it for
+workspace discovery; do not assume it supports a scope parameter:
 
 ```bash
 graph-it scan
-graph-it check src/
-graph-it tool scan_dead_code --scopePath=/absolute/path/to/project/src --format=toon
+graph-it tool scan_dead_code
 ```
 
-Confirm high-priority candidates individually with `get_symbol_callers` and
-`find_referencing_files` before deleting them.
+Before recommending deletion, confirm incoming symbol references/dependents—including type-only
+references when supported—and incoming file references using capabilities actually advertised by
+the CLI or the MCP host's tool schema. A call-sites-only result is insufficient. Missing or partial
+confirmation means the candidate remains unconfirmed; do not recommend deletion. For MCP, use
+only structurally equivalent host-advertised tools and their exact input schemas.
 
 ## Limitations
 

@@ -6,32 +6,23 @@ description: Use when refactoring multiple files, changing exported signatures o
 # Graph-It Refactor
 
 Safe two-phase refactoring for changes whose blast radius is larger than one local implementation detail.
-Map semantic impact with Graph-It-Live before editing code with the host IDE's native tools.
+Map semantic impact with Graph-It-Live before editing code with the host IDE's native tools. Prefer an installed `graph-it` CLI when it can perform the analysis; use host-provided MCP tools when the CLI is unavailable or unsuitable.
 
-## Valid Phase 1 Opening
+## Discover available tools
 
-When the target file and exported symbol are known, the first Graph-It-Live actions are this exact gate:
+At the first activation of a Graph-It skill in a session, discover CLI capabilities once if the `graph-it` executable and terminal are available; otherwise use the host's advertised MCP inventory:
 
 ```text
-1. graphitlive_generate_codemap({ filePath: "/abs/path/to/source.ext", format: "toon" })
-2. graphitlive_get_impact_analysis({ filePath: "/abs/path/to/source.ext", symbolName: "ExportedSymbol", format: "toon" })
-3. graphitlive_get_symbol_callers({ filePath: "/abs/path/to/source.ext", symbolName: "ExportedSymbol", format: "toon" })
-4. graphitlive_crawl_dependency_graph({ filePath: "/abs/path/to/source.ext", format: "toon" })
-5. Summarize source files, impacted callers/importers/exports, cycles, and analysis gaps before editing.
+graph-it --version
+graph-it tool --list
+graph-it --help
 ```
 
-If the target file is unknown, first use read-only search or IDE navigation to resolve it. Then run the same gate.
+Keep this inventory in session context and share it across Graph-It skills. Do not repeat discovery for each command or skill; refresh only if the executable/version or workspace context changes, or a capability fails or is reported unavailable. The installed inventory and host-advertised MCP inventory are authoritative. Do not assume fixed tool names, counts, versions, or latest remote releases.
 
-## Canonical Graph-It-Live Tools
+If the installed CLI's normal notice says a newer version is available, handle it only at the first Graph-It skill activation in the session. In an interactive session, ask for explicit confirmation before running `graph-it update`. Default to yes only in automatic mode that is explicitly enabled and pre-authorized; silence, timeout, non-TTY execution, and Agent mode alone are not consent. Do not update without a notice, install implicitly, or poll independently for releases. After a successful update, re-read the version and CLI inventory. An already-running MCP server may need a host-authorized restart to use the new binary; do not edit MCP configuration. If the update fails, retain the usable CLI and report the failure briefly without retrying or escalating privileges.
 
-Use these exact MCP tool names. Do not invent aliases such as `find_symbol`, `find_references`, `impact_analysis`, `dependency_impact`, `validate_references`, or `refresh_index`.
-Do not rewrite these names with prefixes or separators such as `mcp__graph_it_live__...`, `graph-it-live...`, `graph-it-live....`, or `graph_it_live...`.
-Any refactor plan that names a Graph-It-Live analysis tool outside the four names below is invalid and must be rewritten before continuing.
-
-- `graphitlive_generate_codemap`
-- `graphitlive_get_impact_analysis`
-- `graphitlive_get_symbol_callers`
-- `graphitlive_crawl_dependency_graph`
+The CLI's `tool` commands invoke analysis directly; `graph-it serve` starts an MCP server. Do not treat direct CLI analysis as MCP, and do not start or reconfigure a server just to work around a missing CLI capability. CLI aliases are not guaranteed to be MCP tools. If using MCP, call only tools advertised by the host, with their exact advertised namespace/name and `inputSchema` parameters. Use `response_format: "toon"` only when that schema supports it. For CLI output, use `--format toon` only when the discovered command supports that option. Never guess tool names, aliases, schemas, flags, or JSON output formats.
 
 ## When to Use
 
@@ -43,45 +34,26 @@ Any refactor plan that names a Graph-It-Live analysis tool outside the four name
 
 ## Phase 1: Semantic Mapping and Impact Analysis
 
-This phase is read-only. Do not call write-capable tools, formatters, codemods, package managers that mutate files, or shell commands that alter the worktree.
-Read-only search commands may be used to locate target files, but they never replace Graph-It-Live evidence.
+This phase is source-read-only. Do not edit source, run formatters or codemods, or use package managers or shell commands that alter the worktree. First identify the target file(s); if unknown, use read-only search or IDE navigation to resolve them. Search results help locate targets but never replace semantic evidence.
 
-### Pre-Edit Evidence Gate
+Before graph analysis, scan the workspace index using `graph-it scan` if supported by the installed CLI, or the exact host-advertised MCP scan capability for MCP-only use. If neither route can scan the index, stop and report that prerequisite rather than analyzing an unknown or stale index. Index refresh must not modify source files.
 
-Before any edit, action plans and tool calls must name all required Graph-It-Live tools and include `format: "toon"` wherever the tool schema supports it:
+### Required evidence gate
 
-| Evidence | Required tool call |
-| --- | --- |
-| Target structure | `graphitlive_generate_codemap` with the target file and `format: "toon"` |
-| Exported-symbol blast radius | `graphitlive_get_impact_analysis` with target file, symbol name, and `format: "toon"` |
-| Caller confirmation | `graphitlive_get_symbol_callers` with target file, symbol name, and `format: "toon"` |
-| Dependency cycles and transitive module effects | `graphitlive_crawl_dependency_graph` with the touched entry file or module and `format: "toon"` |
+Resolve these evidence needs to capabilities actually present in the CLI inventory or host MCP inventory. Use the CLI where suitable; fall back to MCP only when the CLI is unavailable or unsuitable. Illustrative capability names—not a required or exhaustive tool list—include `generate_codemap`, `get_impact_analysis`, `query_call_graph --direction=callers --depth=1`, and `crawl_dependency_graph`, but use them only when actually exposed and invoke them with discovered syntax and supported parameters.
 
-If any required Graph-It-Live tool is unavailable, blocked, or returns partial evidence, stop before editing and report the gap. Do not replace the missing tool with text search.
-Do not add extra Graph-It-Live discovery tools to this gate. Use read-only `rg` or IDE navigation only to resolve file paths needed by the four canonical tools.
+Obtain and assess evidence appropriate to the change:
 
-Minimal planned-call shape:
+- Target structure: relevant files/modules, definitions, and exports.
+- Exported-symbol impact: affected exported symbols and their impact across the workspace.
+- Callers and references: caller evidence, importer/dependent evidence, and whether reference coverage is complete. Do not treat callers as proof of all references or importers.
+- Dependency effects: cycles and transitive dependencies across the touched area.
 
-```text
-graphitlive_generate_codemap({ filePath: "/abs/path/to/source.ext", format: "toon" })
-graphitlive_get_impact_analysis({ filePath: "/abs/path/to/source.ext", symbolName: "ExportedSymbol", format: "toon" })
-graphitlive_get_symbol_callers({ filePath: "/abs/path/to/source.ext", symbolName: "ExportedSymbol", format: "toon" })
-graphitlive_crawl_dependency_graph({ filePath: "/abs/path/to/source.ext", format: "toon" })
-```
+`query_call_graph` with caller direction and depth one is an example for caller evidence only; it does not establish importer or complete reference coverage. A discovered `graph_context` or other capability is an acceptable alternative only if its returned evidence is equivalent for the requirement being met. Report dynamic dispatch, reflection, generated code, type-only references, public API surfaces, unsupported languages, and other known coverage gaps.
 
-1. Generate a codemap for each target file with `graphitlive_generate_codemap`.
-   The planned or executed call must explicitly include `format: "toon"` whenever the tool supports it.
-2. For every exported symbol that may change, run `graphitlive_get_impact_analysis`.
-   The planned or executed call must explicitly include `format: "toon"` whenever the tool supports it.
-   Then run `graphitlive_get_symbol_callers` for the same exported symbol unless the tool is unavailable and that blocker is reported.
-   Caller search with `rg`, IDE references, or tests is supporting evidence only; it does not satisfy this step.
-3. Always run `graphitlive_crawl_dependency_graph` for the touched area to identify dependency cycles and transitive module effects.
-   The planned or executed call must explicitly include `format: "toon"` whenever the tool supports it.
-4. Before editing, present a concise action plan with:
-   - source files to modify,
-   - every caller, importer, dependent symbol, and package export that must be updated,
-   - cycles, partial-analysis gaps, dynamic-dispatch risks, or public API compatibility risks.
-   Omitting this plan means Phase 1 is incomplete.
+If a capability needed for the applicable evidence is unavailable, blocked, or returns partial/incomplete results, stop before editing and report the gap. Do not use `rg`, IDE references, or tests as a substitute for missing graph evidence. Do not claim complete references, callers, or importers unless the observed capability and result support that claim.
+
+Before editing, present a concise plan naming the files and intended changes, impacted callers/importers/references/dependent symbols/exports, cycles and transitive effects, and any remaining risks or coverage gaps. Omitting this plan means Phase 1 is incomplete.
 
 ## Phase 2: Targeted Editing and Propagation
 
@@ -97,20 +69,23 @@ Start only after Phase 1 is complete and the action plan exists.
 
 | Rule | Requirement |
 | --- | --- |
-| TOON output | Spell out `format: "toon"` in every Graph-It-Live plan or call that supports it. |
-| No blind editing | Do not edit before `graphitlive_get_impact_analysis` has run for each changed exported symbol. |
-| Caller completeness | Treat missing caller/importer evidence as a blocker, not as permission to guess. |
+| Observed capabilities | Select commands/tools and parameters from the discovered CLI inventory/help or exact host-advertised MCP names and schemas. |
+| Efficient output | Use CLI `--format toon` or MCP `response_format: "toon"` only when the relevant command/tool supports it. |
+| No blind editing | Do not edit until all evidence required for the change is available and assessed. |
+| Evidence completeness | Treat missing or partial caller, importer, reference, impact, or dependency evidence as a blocker when required; do not infer completeness. |
 | Sealed scope | Do not broaden the refactor beyond files and symbols identified during Phase 1. |
-| Cycle awareness | Run dependency graph crawling before every move, deletion, signature change, or module reorganization. |
+| Cycle awareness | Establish cycles and transitive dependency effects for the touched area before moves, deletions, signature changes, or module reorganizations. |
+| Update consent | Never update without the stated notice and required explicit authorization; never treat silence or non-interactive execution as consent. |
 
 ## Common Mistakes
 
 - Running `rg` only and assuming text matches are a complete impact analysis.
-- Treating impact analysis as optional because the change "looks obvious".
-- Inventing Graph-It-Live tool names instead of using the canonical MCP tool names listed above.
-- Forgetting `format: "toon"` on Graph-It-Live calls and wasting context on larger outputs.
-- Writing an action list that says "run Graph-It-Live" without naming the specific tools and TOON format.
-- Making dependency crawling conditional on whether earlier results look suspicious.
+- Repeating CLI discovery for every command or hard-coding a remembered tool inventory as current authority.
+- Assuming an MCP tool name, namespace, schema, CLI alias, flag, or output format without discovering it.
+- Treating caller results as complete importer/reference evidence.
+- Using a graph context result without confirming it meets the particular evidence requirements.
+- Claiming a complete analysis despite missing language, dynamic-dispatch, generated-code, or public-API coverage.
+- Updating or installing the CLI without the required notice and consent.
 - Claiming a narrow diff removes the need for impact or cycle analysis.
 - Moving a public symbol without checking package exports, barrel files, and compatibility re-exports.
 - Editing first, then using Graph-It-Live to justify the diff afterward.
@@ -122,6 +97,8 @@ Start only after Phase 1 is complete and the action plan exists.
 - "Tests are already red, so impact analysis can wait."
 - "No need for a full architecture pass."
 - "I'll fix imports after the move."
-- "The host uses fully qualified MCP names, so I'll rename the tools."
+- "I remember this tool name/schema from another host, so it must be available here."
+- "Caller results prove every importer and reference."
+- "No CLI is installed, so I'll silently install or update it."
 
-These all mean: stop, complete Phase 1, then edit.
+These all mean: stop, complete Phase 1, and resolve the evidence or consent gap before editing.

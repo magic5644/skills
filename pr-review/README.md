@@ -51,6 +51,12 @@ breaking signature does not prove the diff has no behavioral risk.
 
 ## GitHub Actions Gate
 
+When creating or modernizing a workflow, resolve the latest stable official GitHub release, then
+resolve that release tag to its full commit SHA (dereference annotated tags when needed). Pin the
+Action to that SHA and comment the corresponding release tag. Do not trust `target_commitish` as
+the tag's commit or copy this dated snapshot without resolving the current release. The example
+below is a verified `v1.17.0` snapshot from 2026-10-02, not a claim that it remains latest.
+
 ```yaml
 name: Graph-It Review Gate
 
@@ -69,15 +75,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: magic5644/Graph-It-Live/.github/actions/graph-it-review-gate@v1.13.0
+      - uses: magic5644/Graph-It-Live/.github/actions/graph-it-review-gate@2f9d5cd9756c8add33e7a2b30e34be7c131048ac # v1.17.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           comment: ${{ github.event.pull_request.head.repo.fork && 'false' || 'true' }}
           fail-on-risk: high
+          max-depth: "3"
+          max-files: "200"
+          cli-version: "" # empty installs npm CLI @latest; independent of the pinned Action SHA
 ```
 
-The action emits `risk`, `score`, and `cli-version`. Set `comment: false` and remove
+An empty `cli-version` installs the npm CLI at `@latest`; this is independent from the pinned
+Action implementation. The action emits `risk`, `score`, and `cli-version`. Set `comment: false` and remove
 `pull-requests: write` when a sticky PR comment is not required. Keep comments disabled for fork PRs.
+
+Configure Dependabot to propose Action updates. Merge this snippet into an existing
+`.github/dependabot.yml` rather than overwriting other update rules. Dependabot opens PRs; it does
+not auto-merge them unless separately configured:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+```
 
 ## Related Skills
 
