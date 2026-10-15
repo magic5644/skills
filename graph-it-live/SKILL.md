@@ -127,8 +127,18 @@ graph-it architecture --maxFiles 300 --format toon
 Visual option for humans (not for LLM context):
 
 ```bash
-graph-it architecture --format mermaid
+graph-it architecture --format mermaid            # flat file graph
+graph-it architecture --groups --format mermaid   # one subgraph (or node) per folder group, edges labelled with file-pair counts
 ```
+
+For a curated diagram, run `graph-it architecture --groups --format json` and hand `groups`,
+`groupEdges` and `context` to a diagram skill (`architecture-diagram`, `archify`) with the exact
+counts. Role notes and rules are human annotations; runtime flows come from `graph-it trace` and
+are static analysis, not observed execution.
+
+To explore the same groups step by step instead of reading the whole graph, call
+`graph-it tool explore_architecture` (summary), then `--group=<key>` (files and boundary), then
+`--from=<key> --to=<key>` (the file pairs behind a group edge, paginated by `--limit`/`--offset`).
 
 ### Index the Workspace
 
@@ -141,6 +151,14 @@ graph-it scan
 ```
 
 Re-run after significant file changes to refresh the index.
+
+**Workspace root.** Imports resolving outside the workspace root are skipped. Without `--workspace`,
+the CLI uses the nearest directory holding `package.json` or `tsconfig.json`; `graph-it -w <dir>` is
+used exactly as given, and `.graph-it/` (index + cache) is created there. For impact, dependents and
+cross-package questions in a monorepo, pass the monorepo root with `graph-it -w <monorepoRoot> ...`
+instead of `cd` into a package. If `scan` warns that imports resolve outside the workspace root,
+answers cover that root only (`get_index_status` reports `outOfRootImports` and `monorepoRoot`):
+rerun with the `--workspace` it names or state the limitation.
 
 ### Workspace Overview
 
