@@ -32,6 +32,7 @@ TypeScript, JavaScript, Python, Rust, C#, Go, Java, Vue, Svelte, GraphQL.
 ## Prerequisites
 
 - **Node.js v22+**
+- **graph-it 1.21.0 or later** (`graph-it --version`; the skill offers `graph-it update` when it is older)
 
 ---
 
@@ -123,6 +124,7 @@ graph-it wiki
 | `check-dependencies <file>` | Incoming and outgoing dependencies | `graph-it check-dependencies src/api.ts` |
 | `cycles <file>` | Confirmed dependency cycles | `graph-it cycles src/api.ts` |
 | `architecture` | Full workspace architecture | `graph-it architecture --format toon` |
+| `check-architecture` | Check imports against `graphit.architecture.json` rules | `graph-it check-architecture --format markdown` |
 | `check <file>` | Unused exported symbols | `graph-it check src/api.ts` |
 | `review-pr` | Review a Git diff with risk scoring | `graph-it review-pr --base origin/main --format markdown` |
 | `query "<question>"` | Natural language codebase query | `graph-it query "what calls Spider"` |
