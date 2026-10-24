@@ -77,6 +77,13 @@ authorize a restart before it can use the updated CLI. On failure, keep using th
 if it remains usable; otherwise explain the failure and stop CLI analysis. Give a brief warning and
 do not escalate or retry in a loop.
 
+These instructions require Graph-It-Live CLI **1.21.0 or later** (`check-architecture`, `architecture
+--level units`, `--matrix`, and the 24 MCP tools). Compare the reported `graph-it --version` with
+1.21.0 at the same first activation. If it is older, say so once, name the commands it lacks, and
+offer `graph-it update` under the confirmation policy above; until it is updated, use only commands
+listed by that CLI's `--help` and `tool --list`, and never present output of a missing command as a
+result. If the version cannot be read, treat it as older.
+
 `graph-it tool <name>` invokes an analysis tool directly through the CLI; it does not route every
 CLI command through MCP. `graph-it serve` starts the MCP server. For MCP fallback, use only tools,
 namespaces, and parameters advertised by the connected host's current tool schemas. CLI `--format`
@@ -139,6 +146,18 @@ are static analysis, not observed execution.
 To explore the same groups step by step instead of reading the whole graph, call
 `graph-it tool explore_architecture` (summary), then `--group=<key>` (files and boundary), then
 `--from=<key> --to=<key>` (the file pairs behind a group edge, paginated by `--limit`/`--offset`).
+
+Other architecture levels (json/toon):
+
+```bash
+graph-it architecture --level units --format toon              # packages (else top-level folders), layers, unit edges, cycles
+graph-it architecture --folder "(root)/src" --format toon      # one level below a unit or folder key
+graph-it architecture --level units --matrix --format toon     # dependency structure matrix (also --format csv)
+```
+
+When the workspace declares rules in `graphit.architecture.json`, `graph-it check-architecture`
+checks every static import against them. It exits 1 on an `error` violation absent from
+`graphit.architecture.baseline.json`; `--update-baseline` accepts the current violations.
 
 ### Index the Workspace
 
