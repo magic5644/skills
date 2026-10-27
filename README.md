@@ -11,7 +11,7 @@ Each subfolder contains a self-contained skill with a `SKILL.md` file that agent
 | [skill-manager](./skill-manager/) | Interactive skill management - uninstall skills with fzf fuzzy finder |
 | [obsidian-commander](./obsidian-commander/) | Manage Obsidian vaults from any IDE or CLI |
 | [graph-it-live](./graph-it-live/) | Analyze code dependencies, call graphs, and architecture |
-| [graph-it-refactor](./graph-it-refactor/) | Safe two-phase refactoring with Graph-It-Live impact mapping before edits |
+| [graph-it-refactor](./graph-it-refactor/) | Safe refactoring: Graph-It-Live impact mapping before edits, verification after |
 | [onboarding-express](./onboarding-express/) | Guided architectural tour for new developers using Graph-It-Live |
 | [dead-code-hunter](./dead-code-hunter/) | Scan the dependency graph for orphan symbols and propose safe deletions |
 | [pr-review](./pr-review/) | Review Git diffs with Graph-It-Live risk, impact, and GitHub Actions evidence |
