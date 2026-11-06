@@ -78,7 +78,7 @@ if it remains usable; otherwise explain the failure and stop CLI analysis. Give 
 do not escalate or retry in a loop.
 
 These instructions require Graph-It-Live CLI **1.21.0 or later** (`check-architecture`, `architecture
---level units`, `--matrix`, and the 24 MCP tools). Compare the reported `graph-it --version` with
+--level units`, `--matrix`, and the 25 MCP tools). Compare the reported `graph-it --version` with
 1.21.0 at the same first activation. If it is older, say so once, name the commands it lacks, and
 offer `graph-it update` under the confirmation policy above; until it is updated, use only commands
 listed by that CLI's `--help` and `tool --list`, and never present output of a missing command as a
@@ -138,10 +138,15 @@ graph-it architecture --format mermaid            # flat file graph
 graph-it architecture --groups --format mermaid   # one subgraph (or node) per folder group, edges labelled with file-pair counts
 ```
 
-For a curated diagram, run `graph-it architecture --groups --format json` and hand `groups`,
-`groupEdges` and `context` to a diagram skill (`architecture-diagram`, `archify`) with the exact
-counts. Role notes and rules are human annotations; runtime flows come from `graph-it trace` and
-are static analysis, not observed execution.
+When the user asks for a polished, hand-crafted or branded architecture diagram, run
+`graph-it diagram --format diagram-spec --output -` (CLI 1.23.0 or later; add `--rules` for the
+violations, `--folder <key>` for one folder) and pass the JSON to the available diagram skill
+(`diagram-design`, `architecture-diagram`, `archify`). The spec lists every node (label, layer,
+file count, role), the layers, the weighted edges, the cycles, the broken rules and the caption
+lines (`schemas/diagram-spec.schema.json`). Draw only the nodes and edges it lists, never invent
+one, and keep its counts. Older CLIs: use `graph-it architecture --groups --format json` and its
+`groups`, `groupEdges` and `context`. Role notes and rules are human annotations; runtime flows come
+from `graph-it trace` and are static analysis, not observed execution.
 
 To explore the same groups step by step instead of reading the whole graph, call
 `graph-it tool explore_architecture` (summary), then `--group=<key>` (files and boundary), then
@@ -158,6 +163,15 @@ graph-it architecture --level units --matrix --format toon     # dependency stru
 When the workspace declares rules in `graphit.architecture.json`, `graph-it check-architecture`
 checks every static import against them. It exits 1 on an `error` violation absent from
 `graphit.architecture.baseline.json`; `--update-baseline` accepts the current violations.
+
+To share the architecture as a picture (CLI 1.23.0 or later), `graph-it diagram` writes a static,
+script-free SVG or HTML file of the units, of one folder (`--folder <key>`) or of their matrix
+(`--view matrix`). `--rules` draws the rule violations in red, and `--baseline` draws the accepted
+ones apart. The file stays inside the workspace; `--output -` prints it.
+
+```bash
+graph-it diagram --format svg --rules --output docs/architecture.svg
+```
 
 ### Index the Workspace
 
