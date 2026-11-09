@@ -5,7 +5,7 @@ Safe refactoring for agentic coding workflows in three phases: map the impact re
 ## What It Does
 
 - Prefers the installed `graph-it` CLI; falls back to the MCP tools the host advertises, using their exact names and schemas.
-- Phase 1 (read-only): `graph-it scan`, then one bounded call per target symbol: `graph-it context --mode refactor --depth 4 --detail compact --token-budget 4000 --format toon`. It returns importers (tests included), `indexRevision` and `truncated`; a truncated result continues with `--cursor`.
+- Phase 1 (read-only): `graph-it scan`, then one bounded call per target symbol: `graph-it context --mode refactor --depth 4 --detail compact --token-budget 4000 --format toon`. It returns importers (tests included), `indexRevision` and `truncated`; a truncated result is rerun once at `--token-budget 16000`, then continues with `--cursor`.
 - Deepens only exported or widely used symbols with `get_impact_analysis` and `query_call_graph`; uses `verify_dependency_usage` when a file imports a module without clearly using the symbol.
 - Follows re-exports: a barrel that only re-exports the symbol is expanded with `graph-it path-in <barrel>`, because impact, call-graph and `review-pr` consumers stop at the barrel.
 - Records a baseline before moving or deleting code: `graph-it cycles <file>` and, when `graphit.architecture.json` exists, `graph-it check-architecture`.
