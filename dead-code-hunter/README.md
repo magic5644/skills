@@ -33,13 +33,13 @@ Trigger with natural language in your agent:
 
 ## Scan Scope
 
-Use CLI capabilities as advertised by the installed release. The observed CLI help describes
-`graph-it check` as file-scoped. If `graph-it tool --list` advertises `scan_dead_code`, use it for
-workspace discovery; do not assume it supports a scope parameter:
+`graph-it check` and `find_unused_symbols` are file-scoped. `scan_dead_code` covers the workspace,
+or one directory with `--scopePath`; `--maxFiles` (default 500) caps it:
 
 ```bash
 graph-it scan
-graph-it tool scan_dead_code
+graph-it tool scan_dead_code --format toon
+graph-it tool scan_dead_code --scopePath=/abs/src --format toon
 ```
 
 Before recommending deletion, confirm incoming symbol references/dependents—including type-only

@@ -8,6 +8,9 @@ Graph-It-Live is an AI skill that gives your coding agent full access to the [gr
 
 ## Features
 
+- **Task routing** — A known file or symbol is read directly; locating code, callers/impact and
+  architecture go through the graph first. Agents read output as `--format toon`; detailed command
+  references live in `references/` and load on demand
 - **Dependency analysis** — File-level import/export relationships
 - **Call graph** — Cross-file symbol call relationships
 - **Execution tracing** — Full recursive call chain from any function
