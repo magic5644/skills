@@ -87,28 +87,25 @@ cp -r . ~/.agents/skills/graph-it-live/
 ## Quick Start
 
 ```bash
-# 1. Index the workspace (required first)
-graph-it scan
-
-# 2. Get a workspace overview
+# 1. Get a workspace overview (every command indexes on demand; no `graph-it scan` first)
 graph-it summary
 
-# 3. Analyze a specific file
+# 2. Analyze a specific file
 graph-it summary src/api.ts
 
-# 4. Trace execution from a function
+# 3. Trace execution from a function
 graph-it trace src/index.ts#main
 
-# 5. Find unused exports
+# 4. Find unused exports
 graph-it check src/utils.ts
 
-# 6. Ask a natural-language architecture question
+# 5. Ask a natural-language architecture question
 graph-it query "how does authentication flow through this codebase"
 
-# 7. Review a Git diff before merging
+# 6. Review a Git diff before merging
 graph-it review-pr --base origin/main --format markdown
 
-# 8. Generate markdown wiki docs from call graph
+# 7. Generate markdown wiki docs from call graph
 graph-it wiki
 ```
 
@@ -118,7 +115,7 @@ graph-it wiki
 
 | Command | Description | Example |
 | ------- | ----------- | ------- |
-| `scan` | Index/re-index the workspace | `graph-it scan` |
+| `scan` | Optional warm-up and index status (`--reindex` rebuilds) | `graph-it scan` |
 | `summary [file]` | Workspace overview or per-file codemap | `graph-it summary src/api.ts` |
 | `trace <sym>` | Trace execution flow | `graph-it trace src/index.ts#main` |
 | `explain <file>` | Intra-file call hierarchy | `graph-it explain src/server.ts` |

@@ -33,11 +33,11 @@ Trigger with natural language in your agent:
 
 ## Scan Scope
 
-`graph-it check` and `find_unused_symbols` are file-scoped. `scan_dead_code` covers the workspace,
-or one directory with `--scopePath`; `--maxFiles` (default 500) caps it:
+`find_unused_symbols` is file-scoped. `graph-it check` and `scan_dead_code` cover a file, a directory
+(`--scopePath`) or the whole workspace; without `--maxFiles` there is no cap. Commands index on demand
+(no `graph-it scan` first):
 
 ```bash
-graph-it scan
 graph-it tool scan_dead_code --format toon
 graph-it tool scan_dead_code --scopePath=/abs/src --format toon
 ```

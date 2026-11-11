@@ -41,7 +41,6 @@ Trigger with natural language in your agent:
 For large workspaces, scope the first pass:
 
 ```bash
-graph-it scan
 graph-it architecture --maxFiles 300 --format toon
 ```
 
