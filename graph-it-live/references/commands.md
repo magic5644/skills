@@ -66,7 +66,7 @@ graph-it trace src/index.ts#main --format toon  # call chain from <file>#<symbol
 graph-it path src/index.ts --format toon        # transitive imports from an entry file (--communities path|louvain)
 graph-it path-in src/index.ts --format toon     # who imports this file
 graph-it check-dependencies src/index.ts --format toon   # incoming and outgoing dependencies
-graph-it cycles src/index.ts --format toon      # confirmed dependency cycles for a file
+graph-it cycles src/index.ts --format toon      # confirmed dependency cycles for a file; cycleKinds tags each runtime or type-only (typeOnlyCycleCount)
 graph-it check src/api.ts --format toon         # unused exports of one file
 ```
 
@@ -103,7 +103,8 @@ graph-it tool analyze_breaking_changes --args '{"filePath":"/abs/src/a.ts","symb
 - `scan_dead_code` is workspace-wide (or `--scopePath`); `find_unused_symbols` is per-file;
   `graph-it check` takes a file, a folder or nothing. All take `--minConfidence high|medium|low`
   (default `high`: the file is imported and no importer uses the export); `byConfidence` counts the rest.
-  Exports a manifest declares (package.json, pyproject/setup, Cargo lib) or JSX/Vue defaults are left
+  Exports a manifest declares (package.json, pyproject/setup, Cargo lib, serverless.yml / SAM
+  handlers), graphql-codegen outputs or JSX/Vue defaults are left
   out; `--verbose` (`--verbose=true` for `scan_dead_code`) lists them as `excluded` with their `reason`.
 
 ## Architecture
@@ -135,7 +136,9 @@ by hot spot file), hubs, a glossary, and the guard snippets last (summary, dead 
 explorable `index.html`; `--focus <unit|package|folder>` restricts the report and diagrams to it and
 its direct neighbours. It never overwrites an existing config or baseline without
 confirmation: outside a terminal (agent, CI) it then writes nothing unless `--yes`, and still prints
-the report.
+the report. CLI 1.25.3 or later counts runtime, type-only (`import type`, Python `if TYPE_CHECKING:`)
+and lazy (`import()` only) cycles apart, and only runtime cycles can be the top action; each quick win
+and matrix finding carries a `next` command, and the JSON adds a `matrixGuide`.
 
 ## Diagrams for humans (CLI 1.23.0 or later)
 
